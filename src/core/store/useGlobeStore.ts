@@ -11,6 +11,9 @@ const NONE: Landing = { requested: false, phase: null, altM: null, vMps: null, e
 export interface Horizon { requested: boolean; phase: HorizonPhase | null }
 const HORIZON_NONE: Horizon = { requested: false, phase: null }
 
+/** Capas opcionales del globo: rejilla de latitud y longitud, y la elevación LOLA en color (`lolaShade`). */
+export interface MapLayers { grid: boolean; elevation: boolean }
+
 interface GlobeState {
   link: GlobeLink
   /** Si aparece un astronauta junto al módulo al posarse (opción de `PLAY_LANDING_SCENE`). */
@@ -27,6 +30,11 @@ interface GlobeState {
   setPhase: (p: ScenePhase) => void
   setTelemetry: (altM: number, vMps: number) => void
   setLandingError: (reason: string) => void
+  layers: MapLayers
+  toggleLayer: (k: keyof MapLayers) => void
+  /** Cada `recenter()` lo incrementa: el puente manda `RECENTER` (vista global sin perder el sitio, con giro). */
+  recenterSeq: number
+  recenter: () => void
   /**
    * La próxima evaluación abre Horizon view (lo arma "Run simulation" en Simulate y el replay de Missions,
    * decisión del usuario del 2026-11-15). Lo consume el puente al llegar la evaluación.
@@ -51,6 +59,11 @@ export const useGlobeStore = create<GlobeState>((set) => ({
   setPhase: (phase) => set((s) => ({ landing: { ...s.landing, phase } })),
   setTelemetry: (altM, vMps) => set((s) => ({ landing: { ...s.landing, altM, vMps } })),
   setLandingError: (error) => set((s) => ({ landing: { ...s.landing, error, requested: false } })),
+  layers: { grid: false, elevation: false },
+  toggleLayer: (k) => set((s) => ({ layers: { ...s.layers, [k]: !s.layers[k] } })),
+  recenterSeq: 0,
+  // El globo cierra la escena y el horizonte por su cuenta (RECENTER); aquí solo se refleja en las píldoras
+  recenter: () => set((s) => ({ recenterSeq: s.recenterSeq + 1, landing: NONE, horizon: HORIZON_NONE })),
   horizonNext: false,
   armHorizon: (horizonNext) => set({ horizonNext }),
 }))

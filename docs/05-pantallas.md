@@ -20,7 +20,9 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 
 | Estado | Píldoras | Acción |
 | --- | --- | --- |
-| Sin evaluación | Ninguna (o el error de escena si lo hubo) | — |
+| Globo listo (siempre) | "Recenter" | `recenter()` → `RECENTER`: vuelve a ver la Luna completa sin perder el sitio elegido, y la Luna gira sola |
+| Globo listo, fuera del horizonte | "Grid on/off" y "Elevation on/off" (`MapControls`) | `toggleLayer('grid' \| 'elevation')` → `SET_CONFIG`. Apagadas por defecto. La elevación en color no llega más al sur de −85° |
+| Sin evaluación | Solo las de mapa (o el error de escena si lo hubo) | — |
 | Evaluado, globo listo, `viewMode = 'globe'` | "Horizon view" y "Landing scene" | `requestHorizon()` → el globo baja al suelo del sitio; `requestLanding()` → escena en el globo |
 | Vista de horizonte pedida | Fase ("Drag to look around · scrub the timeline") y "Back to globe" | `clearHorizon()` → `EXIT_HORIZON`, vuelo de regreso a la esfera. La bandera persiste entre corridas: Compare, History y Missions llevan el horizonte al sitio nuevo |
 | Evaluado, con `terrain`, `viewMode = 'globe'` | "Terrain detail" | `showSite()` → escena local encima del globo |

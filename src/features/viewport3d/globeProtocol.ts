@@ -32,8 +32,12 @@ export type ToGlobe =
   | { type: 'SET_HORIZON'; payload: { lat: number; lon: number; profile: { az_deg: number; horizon_el_deg: number }[] } }
   /** Cielo del paso actual del scrubber (campos de `timeline[stepIndex]`). */
   | { type: 'SET_SKY_STATE'; payload: { sun: SkyBody; earth: SkyBody } }
-  /** `terrainTilesUrl`: URL base de `GET /terrain/tiles` (`<API>/terrain/tiles`, P-010). Relieve real y polo sur sombreado; sin v1.3 en ese backend, el globo sigue con Moon Trek. */
-  | { type: 'SET_CONFIG'; payload: { terrainTilesUrl?: string } }
+  /**
+   * Configuración parcial (el globo la mezcla con la que tiene). `terrainTilesUrl`: URL base de `GET /terrain/tiles`
+   * (`<API>/terrain/tiles`, P-010); relieve real y polo sur sombreado, y sin v1.3 en ese backend el globo sigue con
+   * Moon Trek. `showGrid` y `layers.lolaShade`: rejilla y elevación LOLA en color (píldoras "Grid" y "Elevation").
+   */
+  | { type: 'SET_CONFIG'; payload: { terrainTilesUrl?: string; showGrid?: boolean; layers?: { lolaShade?: boolean } } }
   /** Detiene o reanuda el dibujado del globo (mientras "Terrain detail" lo tapa). */
   | { type: 'SET_PAUSED'; payload: { paused: boolean } }
   | { type: 'SET_HORIZON_DETAIL'; payload: { detailed: boolean } }
@@ -43,6 +47,8 @@ export type ToGlobe =
   | { type: 'PLAY_LANDING_SCENE'; payload: { lat: number; lon: number; headingDeg?: number; startAltM?: number; durationS?: number; distanceM?: number; astronaut?: boolean } }
   | { type: 'STOP_LANDING_SCENE' }
   | { type: 'RESET' }
+  /** Vista global sin perder el sitio elegido; la cámara gira sola hasta la próxima vista (globo `RECENTER`). */
+  | { type: 'RECENTER' }
 
 export type FromGlobe =
   | { type: 'READY' }

@@ -78,9 +78,15 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
       const s = mission().selected
       if (s) post({ type: 'SELECT_SITE', payload: { id: s.id, lat: s.lat, lon: s.lon, label: s.label } })
     }
+    // Rejilla y elevación en color: el globo ya las tiene; la consola solo las enciende o apaga
+    const sendLayers = () => {
+      const { grid, elevation } = globe().layers
+      post({ type: 'SET_CONFIG', payload: { showGrid: grid, layers: { lolaShade: elevation } } })
+    }
     const pushAll = () => {
       post({ type: 'SET_CONFIG', payload: { terrainTilesUrl: `${API_BASE.replace(/\/+$/, '')}/terrain/tiles` } })
       sendMode()
+      sendLayers()
       sendSites()
       sendSky()
       if (mission().viewMode === 'site') post({ type: 'SET_PAUSED', payload: { paused: true } })
@@ -159,6 +165,9 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
     })
     const unsubGlobe = useGlobeStore.subscribe((s, p) => {
       if (!ready) return
+      // Recentrar: el globo cierra la escena y el horizonte por su cuenta, así que no se mandan sus salidas
+      if (s.recenterSeq !== p.recenterSeq) { post({ type: 'RECENTER' }); return }
+      if (s.layers !== p.layers) sendLayers()
       // Salir de la escena (o un error): el globo limpia módulo y polvo y vuelve a encuadrar el sitio, salvo que
       // en el mismo cambio se pida el horizonte (el vuelo al sitio lo cancelaría). Va antes de abrir el horizonte.
       if (!s.landing.requested && p.landing.requested) { post({ type: 'STOP_LANDING_SCENE' }); if (!s.horizon.requested) flyToSelected() }
