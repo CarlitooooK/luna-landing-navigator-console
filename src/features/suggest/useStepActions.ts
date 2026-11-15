@@ -14,7 +14,8 @@ export function focusLater(...selectors: string[]) {
       if (el) { el.focus(); return }
     }
     // Sin requestAnimationFrame: con el globo dibujando, los fotogramas pueden tardar cientos de milisegundos.
-    if (++tries < 10) setTimeout(attempt, 30)
+    // Hasta ~1.5 s: el cambio de pantalla con view transition no pinta el DOM nuevo hasta capturar la foto vieja.
+    if (++tries < 50) setTimeout(attempt, 30)
   }
   setTimeout(attempt, 0)
 }

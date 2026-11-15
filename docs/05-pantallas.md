@@ -96,6 +96,8 @@ Compare usa la duración y el panel de Setup, pero siempre `step_minutes = 120`.
 
 | Control | Acción | Red |
 | --- | --- | --- |
+| Next step (estado vacío) | `nextStepHistory`: "Save a run from Simulate to keep it here." con "Start a simulation", que pasa a Simulate y enfoca el buscador de sitios | No |
+| Next step (sin corrida elegida) | "Pick a run to see its summary." en el panel derecho, sin acción | — |
 | Buscador y filtros (All, Starred, GO, NO-GO) | Filtra la lista local, agrupada por día UTC ("Today", "Yesterday", fecha) | No |
 | Estrella | Marca o desmarca | No |
 | Note | Texto libre guardado al escribir | No |

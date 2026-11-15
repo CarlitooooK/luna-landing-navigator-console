@@ -7,6 +7,9 @@ import { setCell } from '@/core/utils/countdown'
 import { pct } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Button, Divider, Input, Panel, Segmented, StatusChip } from '@/ui'
+import { NextStepBlock } from '@/features/suggest/NextStepBlock'
+import { nextStepHistory } from '@/features/suggest/nextStep'
+import { useStepActions } from '@/features/suggest/useStepActions'
 
 type Filter = 'all' | 'starred' | 'GO' | 'NO-GO'
 const STATUS_ICON = { GO: [Check, 'var(--color-go)'], CAUTION: [AlertTriangle, 'var(--color-caution)'], 'NO-GO': [X, 'var(--color-nogo)'] } as const
@@ -39,18 +42,22 @@ export function HistoryList() {
   const runs = useHistoryStore((s) => s.runs)
   const picked = useMissionStore((s) => s.pickedRun)
   const pickRun = useMissionStore((s) => s.pickRun)
-  const setWorkspace = useMissionStore((s) => s.setWorkspace)
+  const act = useStepActions()
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const groups = useMemo(() => groupByDay(runs.filter((r) =>
     (filter === 'all' || (filter === 'starred' ? r.starred : r.status === filter))
     && (!q || `${r.site.label} ${r.note} ${r.startUtc}`.toLowerCase().includes(q.toLowerCase())))), [runs, q, filter])
-  if (runs.length === 0) return (
-    <Panel label="History" peekAside="No saved runs" className="items-center py-7 text-center">
-      <span className="raised grid size-11 place-items-center rounded-[14px]"><HistoryIcon size={20} aria-hidden /></span>
-      <h2 className="text-base font-bold">No saved runs yet</h2>
-      <p className="text-[13px] text-ink-2">Run a simulation and press the bookmark to keep it here. Runs stay on this device.</p>
-      <Button variant="primary" onClick={() => withViewTransition(() => setWorkspace('simulate'))} className="h-10">Start a simulation</Button>
+  const empty = nextStepHistory({ runs: runs.length, picked: false })
+  if (runs.length === 0 && empty) return (
+    <Panel label="History" peekAside="No saved runs">
+      <div className="flex flex-col items-center gap-2 pt-3 text-center">
+        <span className="raised grid size-11 place-items-center rounded-[14px]"><HistoryIcon size={20} aria-hidden /></span>
+        <h2 className="text-base font-bold">No saved runs yet</h2>
+        <p className="text-[13px] text-ink-2">Runs stay on this device.</p>
+      </div>
+      {/* Estado vacío con la misma forma de sugerencia que el resto de la consola (tarea C5) */}
+      <NextStepBlock step={empty} onAction={act} />
     </Panel>
   )
   return (
@@ -78,7 +85,8 @@ export function RunDetails() {
   const { remove, setNote, toggleStar } = useHistoryStore()
   const { pickedRun, pickRun, select, setConfig, evaluate, setWorkspace, addScenario } = useMissionStore()
   const r = runs.find((x) => x.id === pickedRun)
-  if (!r) return runs.length ? <Panel label="Run details" peekAside="Pick a run"><p className="text-[13px] text-ink-2">Pick a run to see its summary.</p></Panel> : null
+  const pick = nextStepHistory({ runs: runs.length, picked: !!r })
+  if (!r) return runs.length && pick ? <Panel label="Run details" peekAside="Pick a run"><NextStepBlock step={pick} onAction={() => {}} /></Panel> : null
   const load = () => {
     select(r.site)
     // Las corridas guardadas desde la tarea A7 traen sus paneles; las viejas conservan los de Setup.
