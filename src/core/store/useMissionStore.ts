@@ -105,7 +105,8 @@ const sameScenario = (a: Omit<Scenario, 'key'>, b: Omit<Scenario, 'key'>) =>
 export const useMissionStore = create<MissionState>((set, get) => ({
   workspace: 'simulate', detail: 'simple', fullscreen: false, viewMode: 'globe',
   health: null, sites: [], selected: null,
-  startUtc: toUtcIso(new Date('2026-12-01T00:00:00Z')), // valor de prueba de docs/07
+  // De día en casi todo el catálogo. Con 2026-12-01 (el ejemplo de docs/07), 11 de 13 sitios daban NO-GO (spec de onboarding, D11).
+  startUtc: toUtcIso(new Date('2026-12-13T00:00:00Z')),
   durationDays: 14, stepMinutes: 60, panelAreaM2: 4, panelEfficiency: 0.28,
   evaluation: null, terrain: null, psrs: null, auxFailed: [], ephemeris: null, polePsrs: null, loading: false, error: null, lastRunMs: null, evaluatedFor: null,
   stepIndex: 0, playing: false,

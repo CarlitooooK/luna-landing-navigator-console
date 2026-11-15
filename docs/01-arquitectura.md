@@ -58,7 +58,7 @@ Organizado en las tres velocidades de `docs/ideas/frontend-architecture-guide.md
 | Compare | `scenarios`, `comparison`, `comparing`, `compareError`, `shownScenario` | Panel Scenarios | `compare()` y `showScenario()` |
 | Selección local | `pickedRun` (History), `pickedMission` (Missions, `im-1` por defecto) | Listas | No |
 
-Valores por defecto: `startUtc = 2026-12-01T00:00:00Z` (dato de prueba de `docs/07`), 14 días, paso de 60 min, panel de 4 m² al 28 %.
+Valores por defecto: `startUtc = 2026-12-13T00:00:00Z` (de día en casi todo el catálogo; D11 de la spec de onboarding), 14 días, paso de 60 min, panel de 4 m² al 28 %.
 
 Acciones principales:
 

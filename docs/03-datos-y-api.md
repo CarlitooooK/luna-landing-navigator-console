@@ -135,7 +135,7 @@ La URL "Producción / Demo Pública" de `docs/07` sirve v1.1: ahí `/psr`, `/eph
 | --- | --- | --- |
 | Historial de corridas | `localStorage`, clave `lunar-navigator.history` (`useHistoryStore`) | Solo en este navegador. Máximo 100. Guarda sitio, fecha, duración, paso, `status`, `summary`, estrella y nota. No guarda el timeline |
 | Catálogo de misiones | `src/features/missions/missions.ts` | 7 alunizajes reales (IM-1, IM-2, Chandrayaan-3, Chang'e 4, Apollo 17, 15 y 11) con fecha, hora, coordenadas y fuentes citadas. Las condiciones de luz **no** se guardan: salen de `/evaluate` al reproducir |
-| Valores iniciales | `useMissionStore` | `2026-12-01T00:00:00Z`, 14 días, 60 min, 4 m², 28 % |
+| Valores iniciales | `useMissionStore` | `2026-12-13T00:00:00Z`, 14 días, 60 min, 4 m², 28 % |
 | Telemetría de la escena | Mensajes del globo (`SCENE_TELEMETRY`) | Ilustrativa |
 
 ## Cuándo hay red y cuándo no
