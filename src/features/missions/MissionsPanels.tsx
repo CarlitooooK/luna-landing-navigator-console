@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'react'
-import { Copy, ExternalLink, Globe2, Info, Mountain, Play, Search, Sun } from 'lucide-react'
+import { ExternalLink, Globe2, Info, Mountain, Play, Search, Sun } from 'lucide-react'
 import { withViewTransition } from '@/ui/motion'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { fmtCoord } from '@/core/utils/coordinates'
 import { deg } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
-import { Button, Divider, IconWell, Input, Panel, SectionTitle, Segmented, Skeleton } from '@/ui'
-import { MISSIONS, REGION_LABEL, replayStart, type Mission, type MissionRegion } from './missions'
+import { Button, Divider, IconWell, Input, Panel, SectionTitle, Segmented, Skeleton, StatusChip } from '@/ui'
+import { Help } from '@/features/help/Help'
+import { VerdictList } from '@/features/simulate/VerdictList'
+import { NextStepBlock } from '@/features/suggest/NextStepBlock'
+import { nextStepMissions } from '@/features/suggest/nextStep'
+import { MISSIONS, REGION_LABEL, missionDisagrees, replayStart, type Mission, type MissionRegion } from './missions'
 
 const REGION_COLOR: Record<MissionRegion, string> = { 'south-pole': 'var(--color-psr)', 'far-side': 'var(--color-sun)', 'near-side': 'var(--color-earth)' }
 
@@ -70,6 +74,7 @@ export function MissionBrief() {
   const { select, setConfig, evaluate, setWorkspace, selected, evaluation, loading, error } = useMissionStore()
   const loaded = selected?.id === `mission:${m.id}` && evaluation
   const t0 = loaded ? evaluation.timeline[0] : undefined
+  const step = nextStepMissions({ picked: true, replayed: !!loaded && !loading })
   const load = async () => {
     select({ id: `mission:${m.id}`, lat: m.lat, lon: m.lon, label: m.name, category: m.operator })
     setConfig({ startUtc: replayStart(m.touchdownUtc), durationDays: 14 })
@@ -95,11 +100,19 @@ export function MissionBrief() {
           <Condition icon={Globe2} signal="earth" label="Earth" value={t0.earth_visible ? 'In view' : 'Hidden'}
             note={t0.earth_visible ? 'Direct radio link possible.' : 'No direct radio link from here.'} />
           <Condition icon={Mountain} signal="regolith" label="Ground" value={`${evaluation!.site.slope_deg.toFixed(1)}° slope`} />
+          {/* El veredicto de la ventana de 14 días desde el alunizaje, con su porqué (M-01) */}
+          <div className="flex flex-col gap-2">
+            <span className="flex items-center gap-1"><StatusChip status={evaluation!.site.status} /><Help id="verdict" /></span>
+            <VerdictList site={evaluation!.site} />
+          </div>
+          {missionDisagrees(m, evaluation!.summary.earth_visible_pct) && (
+            <p role="note" className="rounded-xl bg-caution/10 px-3 py-2 text-xs text-ink-2 ring-1 ring-caution/40">
+              The mission record and this simulation disagree on Earth visibility. Check the data source.</p>)}
         </> : <p className="text-xs text-ink-2">Replay the landing to compute the Sun, Earth and ground at that moment.</p>}
       <Divider />
       <div className="flex flex-col gap-2">
-        <Button variant="primary" icon={Play} iconFill disabled={loading} onClick={() => void load()}>{loaded ? 'Replay again' : 'Replay landing window'}</Button>
-        <Button icon={Copy} disabled={!loaded} onClick={() => withViewTransition(() => setWorkspace('simulate'))}>Open as a new simulation</Button>
+        {step && <NextStepBlock step={step} onAction={() => withViewTransition(() => setWorkspace('simulate'))} announce={step.text} />}
+        <Button variant={step ? 'secondary' : 'primary'} icon={Play} iconFill disabled={loading} onClick={() => void load()}>{loaded ? 'Replay again' : 'Replay landing window'}</Button>
       </div>
       <details className="text-[11px] text-ink-3">
         <summary className="cursor-pointer">Sources</summary>

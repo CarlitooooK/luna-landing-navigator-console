@@ -114,6 +114,8 @@ History no tiene píldoras de escena ni timeline.
 | Tarjeta de misión | `pickMission()`; muestra fecha, región, coordenadas, resumen y fuentes | No |
 | "Replay landing window" | Selecciona el sitio de la misión (`id: mission:<id>`), fija el inicio en la hora en punto anterior al alunizaje y 14 días, y evalúa | Sí, `evaluate()` |
 | "Conditions at touchdown" | Sol, Tierra y pendiente del paso 0 de esa evaluación | — |
-| "Open as a new simulation" | Pasa a Simulate con la misión ya cargada | No |
+| Veredicto del brief | `StatusChip` con "?" y la lista de checks (`VerdictList`, la misma de Results) de la ventana de 14 días | — |
+| Nota de discrepancia | Solo si el catálogo afirma `earthNeverInView` y `summary.earth_visible_pct > 0` (`missionDisagrees`). Avisa, no decide quién tiene razón | — |
+| Next step "Open as a new simulation" | Aparece tras el replay (`nextStepMissions`). Pasa a Simulate con la misión ya cargada; "Replay again" queda como botón secundario | No |
 
 La escena de alunizaje no se lanza sola desde Missions: tras "Replay" aparece la píldora "Landing scene" como en Simulate.
