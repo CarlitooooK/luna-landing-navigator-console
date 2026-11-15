@@ -4,21 +4,25 @@ import { useMissionStore } from '@/core/store/useMissionStore'
 import { SceneBackground } from '@/features/viewport3d/SceneBackground'
 import { Rail } from './Rail'
 import { FullscreenBar, TopBar } from './TopBar'
+import { hotkeyFor } from '@/features/help/shortcuts'
+import { toggleHelp } from '@/features/help/HelpMenu'
 
 export interface WorkspaceSlots { left?: ReactNode; right?: ReactNode; top?: ReactNode; bottom?: ReactNode; overlay?: ReactNode; leftWidth?: number }
 
 /** Franja inferior libre para los créditos NASA/Cesium del globo (handoff docs/11 §2, ≈32 px). */
 export const ATTRIBUTION_STRIP = 32
 
-function useFullscreenHotkey() {
+/** `F` pantalla completa y `?` Help, fuera de los campos y sin un `<dialog>` abierto (tareas D1 y D3). */
+function useHotkeys() {
   const toggle = useMissionStore((s) => s.toggleFullscreen)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
-      if (e.key.toLowerCase() !== 'f' || e.metaKey || e.ctrlKey || e.altKey) return
-      if (t.closest('input, textarea, select, [contenteditable="true"]')) return
+      const key = hotkeyFor(e, { inField: !!t.closest?.('input, textarea, select, [contenteditable="true"]'), dialogOpen: !!document.querySelector('dialog[open]') })
+      if (!key) return
       e.preventDefault()
-      withViewTransition(toggle)
+      if (key === 'fullscreen') withViewTransition(toggle)
+      else toggleHelp()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -44,7 +48,7 @@ function Attribution() {
  * al pasar el puntero o al entrar con teclado (index.css, "Pantalla completa").
  */
 export function ConsoleShell({ slots }: { slots: WorkspaceSlots }) {
-  useFullscreenHotkey()
+  useHotkeys()
   useLiquidLight()
   const fullscreen = useMissionStore((s) => s.fullscreen)
   return (

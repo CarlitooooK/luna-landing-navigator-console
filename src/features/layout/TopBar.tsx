@@ -7,6 +7,7 @@ import { Logo } from './Rail'
 import { WORKSPACES } from './workspaces'
 import { ConnectionStatus } from './ConnectionStatus'
 import { Help } from '@/features/help/Help'
+import { HelpMenu } from '@/features/help/HelpMenu'
 
 /** Origen de datos visible siempre (principio 5 de PRODUCT.md: datos honestos). */
 export function DataSource() {
@@ -16,7 +17,7 @@ export function DataSource() {
   const [label, signal] = offline ? ['Offline', 'nogo'] as const : !health ? ['Connecting', 'ink'] as const
     : health.status === 'ok' ? ['Live data', 'go'] as const : ['Degraded', 'caution'] as const
   return (
-    <span className="inline-flex h-8 items-center gap-2 rounded-full pr-1 pl-3 text-xs font-medium text-ink-2 ring-1 ring-white/15" data-api={API_BASE}>
+    <span className="inline-flex h-8 shrink-0 items-center gap-2 rounded-full pr-1 pl-3 whitespace-nowrap text-xs font-medium text-ink-2 ring-1 ring-white/15" data-api={API_BASE}>
       <Dot signal={signal} />{label}<Help id="data-source" />
     </span>
   )
@@ -39,7 +40,7 @@ function FullscreenButton() {
   const toggle = useMissionStore((s) => s.toggleFullscreen)
   const Icon = fullscreen ? Minimize : Maximize
   return (
-    <button onClick={() => withViewTransition(toggle)} className="raised inline-flex h-9 items-center gap-2 rounded-xl px-3 text-[13px] font-bold">
+    <button onClick={() => withViewTransition(toggle)} className="raised inline-flex h-9 shrink-0 items-center gap-2 rounded-xl px-3 text-[13px] font-bold whitespace-nowrap">
       <Icon size={15} aria-hidden />{fullscreen ? 'Exit full screen' : 'Full screen'}<Kbd>F</Kbd>
     </button>
   )
@@ -67,7 +68,7 @@ export function TopBar() {
     <header className="glass condense pointer-events-auto relative z-20 grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-[18px] pr-2.5 pl-5 [view-transition-name:vt-top]">
       <div className="flex min-w-0 items-center justify-between gap-3"><Context /><ConnectionStatus /></div>
       {workspace !== 'history' ? <DetailToggle /> : <span />}
-      <div className="flex items-center justify-end gap-2.5"><DataSource /><FullscreenButton /></div>
+      <div className="flex items-center justify-end gap-2.5"><DataSource /><HelpMenu /><FullscreenButton /></div>
     </header>
   )
 }
@@ -102,7 +103,7 @@ export function FullscreenBar() {
       </nav>
       {/* Simple/Detailed y el origen de datos también en pantalla completa: es el modo de la demo y el video (tarea A6) */}
       <div className="fs-dim glass pointer-events-auto flex items-center gap-2 justify-self-end rounded-full p-1 pl-1.5">
-        {workspace !== 'history' && <DetailToggle />}<DataSource /><FullscreenButton />
+        {workspace !== 'history' && <DetailToggle />}<DataSource /><HelpMenu compact /><FullscreenButton />
       </div>
     </div>
   )
