@@ -2,6 +2,8 @@ import { Globe2, Mountain, Snowflake, Sun, Zap, type LucideIcon } from 'lucide-r
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { countdown, type Body, type Countdown as CountdownT } from '@/core/utils/countdown'
 import { isStale } from '@/core/utils/stale'
+import { Help } from '@/features/help/Help'
+import type { HelpId } from '@/features/help/glossary'
 import { deg, formatHours, hoursShort, pct, pctWhole } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Divider, Flow, IconWell, Meter, Panel, SectionTitle, Skeleton, StatusChip, type Signal } from '@/ui'
@@ -20,8 +22,8 @@ const COUNTDOWN_TEXT: Record<Body, { set: string; rise: string; never: string; a
   earth: { set: 'until Earth sets', rise: 'until Earth rises', never: 'Earth never in view', always: 'Earth stays in view', later: 'Earth rises later in this window' },
 }
 
-function Countdown({ icon, signal, label, body, c, note, share }: {
-  icon: LucideIcon; signal: Signal; label: string; body: Body; c: CountdownT; note: string; share: number
+function Countdown({ icon, signal, label, body, c, note, share, help }: {
+  icon: LucideIcon; signal: Signal; label: string; body: Body; c: CountdownT; note: string; share: number; help: HelpId
 }) {
   const t = COUNTDOWN_TEXT[body]
   const f = c.kind === 'until-set' || c.kind === 'until-rise' ? formatHours(c.hours) : null
@@ -31,7 +33,7 @@ function Countdown({ icon, signal, label, body, c, note, share }: {
     <div className="flex items-start gap-3">
       <IconWell icon={icon} signal={signal} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="text-xs font-medium text-ink-3">{label}</span>
+        <span className="flex items-center text-xs font-medium text-ink-3">{label}<Help id={help} /></span>
         {f ? <span className="flex items-baseline gap-1.5"><span className="tnum text-xl font-bold"><Flow text={f.value} /></span>
           <span className="text-[13px] font-medium text-ink-2">{[f.unit, until].filter(Boolean).join(' ')}</span></span>
           : <span className="text-xl font-bold">{none}</span>}
@@ -46,12 +48,12 @@ function Countdown({ icon, signal, label, body, c, note, share }: {
 const nextSetCell = (c: CountdownT) =>
   c.kind === 'until-set' ? hoursShort(c.hours) : c.kind === 'until-rise' ? `rise ${Math.round(c.hours)}h` : c.kind === 'never' ? 'never' : c.kind === 'always' ? 'no set' : 'rise later'
 
-function Fact({ icon, signal, label, value, unit, note }: { icon: LucideIcon; signal: Signal; label: string; value: string; unit: string; note: string }) {
+function Fact({ icon, signal, label, value, unit, note, help }: { icon: LucideIcon; signal: Signal; label: string; value: string; unit: string; note: string; help: HelpId }) {
   return (
     <div className="flex items-start gap-3">
       <IconWell icon={icon} signal={signal} />
       <div className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-ink-3">{label}</span>
+        <span className="flex items-center text-xs font-medium text-ink-3">{label}<Help id={help} /></span>
         <span className="flex items-baseline gap-1.5"><span className="tnum text-xl font-bold"><Flow text={value} duration={300} /></span><span className="text-[13px] font-medium text-ink-2">{unit}</span></span>
         <span className="text-xs text-ink-2">{note}</span>
       </div>
@@ -59,10 +61,10 @@ function Fact({ icon, signal, label, value, unit, note }: { icon: LucideIcon; si
   )
 }
 
-function Row({ k, a, b, ac, bc }: { k: string; a: string; b?: string; ac?: string; bc?: string }) {
+function Row({ k, a, b, ac, bc, help }: { k: string; a: string; b?: string; ac?: string; bc?: string; help?: HelpId }) {
   return (
     <div className="flex h-6 items-center text-xs">
-      <span className="flex-1 text-ink-2">{k}</span>
+      <span className="flex flex-1 items-center text-ink-2">{k}{help && <Help id={help} />}</span>
       <span className={`tnum w-[78px] text-right font-mono text-[13px] font-medium ${ac ?? ''}`}>{a}</span>
       {b !== undefined && <span className={`tnum w-[78px] text-right font-mono text-[13px] font-medium ${bc ?? ''}`}>{b}</span>}
     </div>
@@ -77,18 +79,18 @@ function Simple() {
   return (
     <>
       <div className="flex flex-col items-start gap-2">
-        <StatusChip status={site.status} />
+        <span className="flex items-center gap-1"><StatusChip status={site.status} /><Help id="verdict" /></span>
         <h3 className="text-[22px] leading-[27px] font-bold text-balance">{h.title}</h3>
         <p className="text-[13px] leading-[19px] text-ink-2">{h.body}</p>
       </div>
       <Divider />
-      <Countdown icon={Sun} signal="sun" label="Daylight" body="sun" c={countdown(m, ev.timeline, 'sun')}
+      <Countdown icon={Sun} signal="sun" label="Daylight" help="daylight" body="sun" c={countdown(m, ev.timeline, 'sun')}
         note={`Sunlit ${pctWhole(m.sun_visible_pct)} of the mission.`} share={m.sun_visible_pct / 100} />
-      <Countdown icon={Globe2} signal="earth" label="Talk to Earth" body="earth" c={countdown(m, ev.timeline, 'earth')}
+      <Countdown icon={Globe2} signal="earth" label="Talk to Earth" help="earth-link" body="earth" c={countdown(m, ev.timeline, 'earth')}
         note={`Earth in view ${pctWhole(m.earth_visible_pct)} of the mission.`} share={m.earth_visible_pct / 100} />
-      <Fact icon={Zap} signal="sun" label="Solar power now" value={point ? `${Math.round(point.power_factor * 100)}%` : '—'} unit="of panel output"
+      <Fact icon={Zap} signal="sun" label="Solar power now" help="power" value={point ? `${Math.round(point.power_factor * 100)}%` : '—'} unit="of panel output"
         note={`Peak in this window: ${(m.estimated_peak_power_w / 1000).toFixed(1)} kW.`} />
-      <Fact icon={Mountain} signal="regolith" label="Ground slope" value={`${site.slope_deg.toFixed(1)}°`} unit=""
+      <Fact icon={Mountain} signal="regolith" label="Ground slope" help="slope" value={`${site.slope_deg.toFixed(1)}°`} unit=""
         note={site.nearest_psr_km != null ? `Permanent shadow ${site.nearest_psr_km.toFixed(1)} km away.` : 'At the landing spot.'} />
     </>
   )
@@ -105,7 +107,7 @@ function Detailed() {
   return (
     <>
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between"><StatusChip status={site.status} />
+        <div className="flex items-center justify-between"><span className="flex items-center gap-1"><StatusChip status={site.status} /><Help id="verdict" /></span>
           <span className="text-xs text-ink-2">Server notes (in Spanish)</span></div>
         {/* reasons llega en español; la tarea B5 de la spec de onboarding las sustituye por site.checks (inglés) cuando el backend los manda */}
         <ul className="flex flex-col gap-1.5">
@@ -121,12 +123,12 @@ function Detailed() {
         </div>
         <Row k="Status" a={p?.sun_visible ? 'Visible' : 'Hidden'} b={p?.earth_visible ? 'In view' : 'Hidden'}
           ac={p?.sun_visible ? 'text-sun' : 'text-nogo'} bc={p?.earth_visible ? 'text-earth' : 'text-nogo'} />
-        <Row k="Azimuth" a={deg(p?.sun_az_deg)} b={deg(p?.earth_az_deg)} />
-        <Row k="Elevation" a={deg(p?.sun_el_deg)} b={deg(p?.earth_el_deg)} />
-        <Row k="Terrain horizon" a={deg(p?.sun_horizon_el_deg)} b={deg(p?.earth_horizon_el_deg)} />
-        <Row k="Clearance" a={clear(p?.sun_el_deg, p?.sun_horizon_el_deg)} b={clear(p?.earth_el_deg, p?.earth_horizon_el_deg)} />
+        <Row k="Azimuth" help="azimuth" a={deg(p?.sun_az_deg)} b={deg(p?.earth_az_deg)} />
+        <Row k="Elevation" help="elevation" a={deg(p?.sun_el_deg)} b={deg(p?.earth_el_deg)} />
+        <Row k="Terrain horizon" help="terrain-horizon" a={deg(p?.sun_horizon_el_deg)} b={deg(p?.earth_horizon_el_deg)} />
+        <Row k="Clearance" help="clearance" a={clear(p?.sun_el_deg, p?.sun_horizon_el_deg)} b={clear(p?.earth_el_deg, p?.earth_horizon_el_deg)} />
         <Row k="Visible in window" a={pct(m.sun_visible_pct)} b={pct(m.earth_visible_pct)} />
-        <Row k="Longest stretch" a={hoursShort(m.max_continuous_sun_hours)} b={hoursShort(m.max_continuous_dte_hours)} />
+        <Row k="Longest" help="longest" a={hoursShort(m.max_continuous_sun_hours)} b={hoursShort(m.max_continuous_dte_hours)} />
         <Row k="Next set" a={nextSetCell(countdown(m, ev.timeline, 'sun'))} b={nextSetCell(countdown(m, ev.timeline, 'earth'))} />
         <p className="tnum pt-1 font-mono text-[11px] text-ink-3">
           Sunset {m.next_sunset_utc ? formatUtc(m.next_sunset_utc) : 'none in window'} · Earthset {m.next_earthset_utc ? formatUtc(m.next_earthset_utc) : 'none in window'}
@@ -136,16 +138,16 @@ function Detailed() {
       <div className="flex flex-col gap-0.5">
         <SectionTitle aside={<span className="text-[11px] text-ink-3">{panelAreaM2.toFixed(1)} m² · {Math.round(panelEfficiency * 100)}%</span>}>
           <span className="flex items-center gap-2"><Zap size={14} className="text-sun" aria-hidden />Solar power</span></SectionTitle>
-        <Row k="Power factor now" a={p ? p.power_factor.toFixed(2) : '—'} />
+        <Row k="Power factor now" help="power" a={p ? p.power_factor.toFixed(2) : '—'} />
         <Row k="Average factor" a={m.avg_power_factor.toFixed(2)} />
-        <Row k="Peak in window" a={`${Math.round(m.estimated_peak_power_w).toLocaleString('en-US')} W`} />
+        <Row k="Peak in window" help="peak-power" a={`${Math.round(m.estimated_peak_power_w).toLocaleString('en-US')} W`} />
       </div>
       <Divider />
       <div className="flex flex-col gap-0.5">
         <SectionTitle><span className="flex items-center gap-2"><Mountain size={14} className="text-regolith" aria-hidden />Terrain</span></SectionTitle>
         <Row k="Elevation" a={`${site.elevation_m.toLocaleString('en-US', { maximumFractionDigits: 1 })} m`} />
-        <Row k="Ground slope" a={`${site.slope_deg.toFixed(1)}°`} />
-        <div className="flex h-6 items-center text-xs"><span className="flex flex-1 items-center gap-1.5 text-ink-2"><Snowflake size={12} className="text-psr" aria-hidden />Permanent shadow</span>
+        <Row k="Ground slope" help="slope" a={`${site.slope_deg.toFixed(1)}°`} />
+        <div className="flex h-6 items-center text-xs"><span className="flex flex-1 items-center gap-1.5 text-ink-2"><Snowflake size={12} className="text-psr" aria-hidden />Permanent shadow<Help id="psr" /></span>
           <span className="tnum font-mono text-[13px] font-medium">{site.nearest_psr_km != null ? `${site.nearest_psr_km.toFixed(1)} km` : '—'}</span></div>
       </div>
     </>

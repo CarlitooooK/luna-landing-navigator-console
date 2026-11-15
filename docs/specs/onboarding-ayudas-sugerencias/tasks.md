@@ -126,7 +126,7 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
   - Cada `HelpId` del catálogo, salvo los del glosario puro, tiene al menos un "?" en pantalla.
   - Un lector de pantalla oye la ayuda al enfocar el campo.
   - Las capturas de Simple y Detailed no tienen desbordes.
-- **Pruebas:** una prueba que recorre el catálogo y comprueba que cada id usado en `src` existe (lectura de archivos con `node:fs`).
+- **Pruebas:** `usage.test.ts` lee el código con `import.meta.glob` (sin tipos de Node) y comprueba que cada ayuda usada existe y que cada entrada tiene un "?", salvo las del glosario puro (píldoras de escena, explicadas en Help y en el tour).
 
 ### B5. `feat(results)`: el porqué del veredicto con `site.checks`
 - **Spec:** 2.7. **Cierra:** A-03, A-04. **Depende de:** A1.

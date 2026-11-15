@@ -66,11 +66,15 @@ Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CL
 | --- | --- | --- |
 | Play / Pause | Avanza 4 pasos cada 100 ms. Al final se detiene; si está al final, reinicia | Igual, con velocidad 1×, 4× o 12× |
 | Reloj | "Day N of M" y fecha UTC. El eje usa la misma regla (`dayOf`): la hora 72 es "Day 4" en los dos | "T+N h" y fecha UTC |
-| Pistas | Sunlight, Earth in view | Sunlight, Earth link, Both (con %) y banderas de Sunset / Earthset |
+| Pistas | Sunlight, Earth in view | Sunlight, Earth link, Sun + Earth (con %) y banderas de Sunset / Earthset |
 | Scrubber | Arrastre sobre las pistas (`role="slider"`). Teclado (`sliderStep`): ←/→ un paso, PageUp/PageDown un día, Home/End los extremos. `aria-valuetext` dice "Day N of M, fecha" | Igual; `aria-valuetext` dice "T+N h, fecha" |
 | Horizon 360° | — | Silueta de `horizon_profile` con el Sol y la Tierra del paso actual, y debajo el mismo scrubber sin las pistas |
 
 Cada cambio de paso actualiza Results, la luz de la escena local y el Sol y la Tierra del globo. Sin red.
+
+### Ayudas "?"
+
+Cada término y número tiene un "?" (`features/help/Help.tsx`, textos en `features/help/glossary.ts`): campos de Setup, chip de veredicto, métricas de Results Simple y filas de Detailed, pistas del timeline y Horizon 360°, Simple/Detailed, origen de datos y Compare ("Scenarios" y "Rank by"). Abre con clic, toque, Enter o Espacio, y con hover de 150 ms si el puntero es fino; cierra con Esc o clic fuera. Dentro de un `Field`, el texto también se lee al enfocar el campo (`aria-describedby`). Las píldoras de escena no llevan "?": se explican en el glosario de Help y en el tour.
 
 ## Compare
 
@@ -80,7 +84,7 @@ Cada cambio de paso actualiza Results, la luz de la escena local y el Sol y la T
 | Ojo de un escenario | `showScenario()`: selecciona sitio y fecha y llama `evaluate()`. El fondo y el timeline pasan a ese escenario | `/evaluate`, `/terrain/patch`, `/psr/nearby` |
 | Papelera | Quita el escenario y borra la comparación | No |
 | "Compare scenarios" | `compare()` con 2 a 5 escenarios | `/compare` |
-| "Rank by" | Reordena la recomendación (Balanced, Power, Earth link). Primero manda el estado del backend | No |
+| "Rank by" | Reordena la recomendación (Balanced, Sunlight, Earth link). Primero manda el estado del backend | No |
 | Matriz "Side by side" | 8 métricas por escenario; "Best" en la mejor si no hay empate. "First sunset" y "First Earthset" sin ocaso dicen "Never sets", "Never in view", "No sunlight" o "Rises later" (`setCell`), nunca "None" | — |
 
 Compare usa la duración y el panel de Setup, pero siempre `step_minutes = 120`.

@@ -5,6 +5,8 @@ import { bothRuns, coverage, dayOf, earthRuns, sliderStep, stepHours, sunRuns, t
 import { formatUtc } from '@/core/utils/time'
 import { Panel, SIGNAL, Segmented, type Signal } from '@/ui'
 import { HorizonChart } from './HorizonChart'
+import { Help } from '@/features/help/Help'
+import type { HelpId } from '@/features/help/glossary'
 
 const SPEEDS = [1, 4, 12] as const
 // Identidad de una corrida: al cambiar, las pistas se vuelven a verter
@@ -55,6 +57,8 @@ export function TimelineDock() {
   if (!evaluation || n === 0) return null
 
   const detailed = detail === 'detailed'
+  // Columna de etiquetas: en Detailed lleva "?" y el porcentaje, así que es más ancha (tarea B4).
+  const labelW = detailed ? 148 : 104, laneLeft = labelW + 12
   const hrs = stepHours(t)
   const totalH = n * hrs
   const p = t[stepIndex]
@@ -83,10 +87,10 @@ export function TimelineDock() {
     <span className={`glow absolute -top-1 bottom-0 w-0.5 -translate-x-1/2 rounded-full bg-ink text-ink ${playing ? 'breathe' : ''}`}
       style={{ left: `${(stepIndex / (n - 1)) * 100}%`, transition: playing ? 'left 100ms linear' : 'left 240ms var(--ease-out)' }} />
   )
-  const rows: { label: string; pct: number; signal: Signal; runs: Run[] }[] = [
-    { label: 'Sunlight', pct: m.sun_visible_pct, signal: 'sun', runs: tracks.sun },
-    { label: detailed ? 'Earth link' : 'Earth in view', pct: m.earth_visible_pct, signal: 'earth', runs: tracks.earth },
-    ...(detailed ? [{ label: 'Both', pct: coverage(tracks.both, n) * 100, signal: 'go' as Signal, runs: tracks.both }] : []),
+  const rows: { label: string; pct: number; signal: Signal; runs: Run[]; help: HelpId }[] = [
+    { label: 'Sunlight', pct: m.sun_visible_pct, signal: 'sun', runs: tracks.sun, help: 'daylight' },
+    { label: detailed ? 'Earth link' : 'Earth in view', pct: m.earth_visible_pct, signal: 'earth', runs: tracks.earth, help: 'earth-link' },
+    ...(detailed ? [{ label: 'Sun + Earth', pct: coverage(tracks.both, n) * 100, signal: 'go' as Signal, runs: tracks.both, help: 'both' as HelpId }] : []),
   ]
   const tickEvery = totalH > 400 ? 120 : 72
   const ticks = Array.from({ length: Math.floor(totalH / tickEvery) + 1 }, (_, i) => i * tickEvery).filter((h) => h < totalH - tickEvery / 3)
@@ -111,11 +115,11 @@ export function TimelineDock() {
             <span className="tnum truncate font-mono text-[11px] text-ink-2">{formatUtc(p.timestamp_utc)}</span>
           </div>
         </div>
-        {detailed ? <Segmented size="sm" label="Bottom view" value={tab} onChange={setTab}
-          options={[{ value: 'timeline', label: 'Timeline' }, { value: 'horizon', label: 'Horizon 360°' }]} className="w-[200px]" />
+        {detailed ? <span className="flex items-center gap-1"><Segmented size="sm" label="Bottom view" value={tab} onChange={setTab}
+          options={[{ value: 'timeline', label: 'Timeline' }, { value: 'horizon', label: 'Horizon 360°' }]} className="w-[200px]" /><Help id="horizon-360" /></span>
           : <div className="flex items-center gap-3.5 text-xs text-ink-2">
               {rows.map((r) => <span key={r.label} className="flex items-center gap-1.5">
-                <span className="glow h-1.5 w-3 rounded-full" style={{ color: SIGNAL[r.signal], background: SIGNAL[r.signal] }} />{r.label}</span>)}
+                <span className="glow h-1.5 w-3 rounded-full" style={{ color: SIGNAL[r.signal], background: SIGNAL[r.signal] }} />{r.label}<Help id={r.help} /></span>)}
             </div>}
       </div>
 
@@ -135,15 +139,15 @@ export function TimelineDock() {
             const f = Math.min(1, e.h / totalH), flip = f > 0.5
             return (
               <span key={e.label} className={`absolute top-0 flex items-center gap-1 rounded-md px-1.5 py-px text-[10px] font-bold whitespace-nowrap ${flip ? 'flex-row-reverse -translate-x-full' : ''}`}
-                style={{ left: `calc(104px + 12px + (100% - 116px) * ${f})`, background: `color-mix(in srgb, ${SIGNAL[e.signal]} 18%, transparent)` }}>
+                style={{ left: `calc(${laneLeft}px + (100% - ${laneLeft}px) * ${f})`, background: `color-mix(in srgb, ${SIGNAL[e.signal]} 18%, transparent)` }}>
                 <span className="h-2.5 w-0.5" style={{ background: SIGNAL[e.signal] }} />{e.label} {Math.round(e.h)} h
               </span>
             )
           })}
-          <div className="grid grid-cols-[104px_1fr] items-center gap-x-3 gap-y-2">
+          <div className="grid items-center gap-x-3 gap-y-2" style={{ gridTemplateColumns: `${labelW}px 1fr` }}>
             {rows.map((r, i) => (
               <div key={r.label} className="contents">
-                <span className="flex justify-between text-xs font-medium text-ink-2">{r.label}
+                <span className="flex items-center justify-between text-xs font-medium text-ink-2"><span className="flex items-center">{r.label}{detailed && <Help id={r.help} />}</span>
                   {detailed && <span className="tnum font-mono text-[11px] text-ink-3">{r.pct.toFixed(1)}%</span>}</span>
                 <Track key={evaluation.site.lat + startUtc(t)} runs={r.runs} n={n} signal={r.signal} height={detailed ? 10 : 8} delay={120 + i * 110} />
               </div>
@@ -155,7 +159,7 @@ export function TimelineDock() {
             </div>
           </div>
           {/* Zona de arrastre + playhead sobre las pistas */}
-          <div {...slider} className="absolute top-4 bottom-4 left-[116px] right-0 cursor-ew-resize touch-none">{playhead}</div>
+          <div {...slider} className="absolute top-4 bottom-4 right-0 cursor-ew-resize touch-none" style={{ left: laneLeft }}>{playhead}</div>
         </div>
       )}
     </Panel>

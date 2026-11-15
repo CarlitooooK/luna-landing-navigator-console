@@ -6,6 +6,7 @@ import { setCell } from '@/core/utils/countdown'
 import { hoursShort, pct } from '@/core/utils/timeline'
 import { Button, Divider, Field, IconButton, Input, Panel, Segmented, Skeleton, StatusChip } from '@/ui'
 import type { CompareResponse } from '@/types'
+import { Help } from '@/features/help/Help'
 
 const BADGE = ['#F4F1EA', '#C9B8FF', '#FFD9A8', '#A8E6CF', '#FFB3C1'] // A..E (Figma)
 const letter = (i: number) => String.fromCharCode(65 + i)
@@ -75,7 +76,7 @@ export function ScenariosPanel() {
   const best = comparison ? rank(comparison.results, priority)[0] : undefined
   const bestI = best ? comparison!.results.indexOf(best) : -1
   return (
-    <Panel title={<span className="flex items-baseline gap-2"><h2 className="text-base font-bold">Scenarios</h2>
+    <Panel title={<span className="flex items-baseline gap-2"><h2 className="text-base font-bold">Scenarios</h2><Help id="scenario" className="self-center" />
       <span className="text-xs text-ink-3">{scenarios.length} of {MAX_SCENARIOS}</span></span>} label="Scenarios"
       peekAside={`${scenarios.length} of ${MAX_SCENARIOS}`}>
       {scenarios.length > 0 && <ol className="flex flex-col gap-2">{scenarios.map((s, i) => <ScenarioRow key={s.key} s={s} i={i} />)}</ol>}
@@ -93,9 +94,9 @@ export function ScenariosPanel() {
             <span className="flex items-center gap-2.5"><Badge i={bestI} size={22} /><span className="text-base font-bold">{scenarios[bestI]?.site.label}</span></span>
             <span className="text-[13px] text-ink-2">{shortDate(scenarios[bestI]?.startUtc ?? '')} · {best.site.status} · sunlight {pct(best.summary.sun_visible_pct, 0)}, Earth {pct(best.summary.earth_visible_pct, 0)}.</span>
           </div>
-          <Field label="Rank by">
+          <Field label="Rank by" help={<Help id="rank-by" />}>
             <Segmented label="Rank by" value={priority} onChange={setPriority}
-              options={[{ value: 'balanced', label: 'Balanced' }, { value: 'power', label: 'Power' }, { value: 'earth', label: 'Earth link' }]} />
+              options={[{ value: 'balanced', label: 'Balanced' }, { value: 'power', label: 'Sunlight' }, { value: 'earth', label: 'Earth link' }]} />
           </Field>
         </>
       )}

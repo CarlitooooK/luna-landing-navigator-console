@@ -6,6 +6,7 @@ import { Dot, Kbd, Segmented } from '@/ui'
 import { Logo } from './Rail'
 import { WORKSPACES } from './workspaces'
 import { ConnectionStatus } from './ConnectionStatus'
+import { Help } from '@/features/help/Help'
 
 /** Origen de datos visible siempre (principio 5 de PRODUCT.md: datos honestos). */
 export function DataSource() {
@@ -15,8 +16,8 @@ export function DataSource() {
   const [label, signal] = offline ? ['Offline', 'nogo'] as const : !health ? ['Connecting', 'ink'] as const
     : health.status === 'ok' ? ['Live data', 'go'] as const : ['Degraded', 'caution'] as const
   return (
-    <span title={API_BASE} className="inline-flex h-8 items-center gap-2 rounded-full px-3 text-xs font-medium text-ink-2 ring-1 ring-white/15">
-      <Dot signal={signal} />{label}
+    <span className="inline-flex h-8 items-center gap-2 rounded-full pr-1 pl-3 text-xs font-medium text-ink-2 ring-1 ring-white/15" data-api={API_BASE}>
+      <Dot signal={signal} />{label}<Help id="data-source" />
     </span>
   )
 }
@@ -24,8 +25,13 @@ export function DataSource() {
 function DetailToggle() {
   const detail = useMissionStore((s) => s.detail)
   const setDetail = useMissionStore((s) => s.setDetail)
-  return <Segmented label="Detail level" value={detail} onChange={(v) => withViewTransition(() => setDetail(v))}
-    options={[{ value: 'simple', label: 'Simple' }, { value: 'detailed', label: 'Detailed' }]} className="w-[180px]" />
+  return (
+    <span className="flex items-center gap-1">
+      <Segmented label="Detail level" value={detail} onChange={(v) => withViewTransition(() => setDetail(v))}
+        options={[{ value: 'simple', label: 'Simple' }, { value: 'detailed', label: 'Detailed' }]} className="w-[180px]" />
+      <Help id="detail-level" />
+    </span>
+  )
 }
 
 function FullscreenButton() {

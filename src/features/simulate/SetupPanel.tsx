@@ -8,6 +8,7 @@ import { isStale } from '@/core/utils/stale'
 import { Button, Divider, Field, IconButton, IconWell, Input, Panel, SectionTitle, Segmented } from '@/ui'
 import type { Site } from '@/types'
 import { isComboboxKey, moveActive, type ComboboxKey } from './combobox'
+import { Help } from '@/features/help/Help'
 
 const DURATIONS_SIMPLE = [{ value: 7, label: '7 days' }, { value: 14, label: '14 days' }, { value: 29.5, label: 'Full cycle' }]
 const DURATIONS_DETAILED = [{ value: 7, label: '7 d' }, { value: 14, label: '14 d' }, { value: 29.5, label: '29.5 d' }]
@@ -98,9 +99,9 @@ function CustomCoords() {
   return (
     <div className="flex flex-col gap-2">
       <div className="grid grid-cols-2 gap-2.5">
-        <Field label="Latitude" error={le ? ' ' : undefined}><Input mono suffix="°" inputMode="decimal" value={lat} invalid={!!le}
+        <Field label="Latitude" help={<Help id="latitude" />} error={le ? ' ' : undefined}><Input mono suffix="°" inputMode="decimal" value={lat} invalid={!!le}
           onChange={(e) => { setLat(e.target.value); commit(e.target.value, lon) }} /></Field>
-        <Field label="Longitude" error={oe ? ' ' : undefined}><Input mono suffix="°E" inputMode="decimal" value={lon} invalid={!!oe}
+        <Field label="Longitude" help={<Help id="longitude" />} error={oe ? ' ' : undefined}><Input mono suffix="°E" inputMode="decimal" value={lon} invalid={!!oe}
           onChange={(e) => { setLon(e.target.value); commit(lat, e.target.value) }} /></Field>
       </div>
       {(le || oe) ? <p role="alert" className="text-xs text-ink">{le ?? oe}</p>
@@ -138,15 +139,15 @@ function WindowFields({ detailed }: { detailed: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-[1.35fr_1fr] gap-2.5">
-        <Field label="Landing date"><Input type="date" value={date} onChange={(e) => set(e.target.value, time)} /></Field>
+        <Field label="Landing date" help={<Help id="date" />}><Input type="date" value={date} onChange={(e) => set(e.target.value, time)} /></Field>
         <TimeField time={time} onCommit={(t) => set(date, t)} />
       </div>
-      <Field label="Mission length" hint={detailed ? undefined : '14 days is one lunar daylight period.'}>
+      <Field label="Mission length" help={<Help id="duration" />} hint={detailed ? undefined : '14 days is one lunar daylight period.'}>
         <Segmented label="Mission length" value={durationDays} onChange={(v) => setConfig({ durationDays: v })}
           options={detailed ? DURATIONS_DETAILED : DURATIONS_SIMPLE} />
       </Field>
       {detailed && (
-        <Field label="Time step">
+        <Field label="Time step" help={<Help id="step" />}>
           <Segmented label="Time step" value={stepMinutes} onChange={(v) => setConfig({ stepMinutes: v })}
             options={STEP_OPTIONS.map((m) => ({ value: m, label: `${m} min` }))} />
         </Field>
@@ -170,9 +171,9 @@ function SolarPanels({ detailed }: { detailed: boolean }) {
     <div className="flex flex-col gap-3">
       <SectionTitle aside={<Zap size={14} className="text-sun" aria-hidden />}>Solar panels</SectionTitle>
       <div className="grid grid-cols-2 gap-2.5">
-        <Field label="Panel area"><Input mono suffix="m²" inputMode="decimal" value={panelAreaM2}
+        <Field label="Panel area" help={<Help id="panel-area" />}><Input mono suffix="m²" inputMode="decimal" value={panelAreaM2}
           onChange={(e) => { const v = Number(e.target.value); if (v > 0) setConfig({ panelAreaM2: v }) }} /></Field>
-        <Field label="Efficiency"><Input mono suffix="%" inputMode="decimal" value={Math.round(panelEfficiency * 100)}
+        <Field label="Efficiency" help={<Help id="panel-efficiency" />}><Input mono suffix="%" inputMode="decimal" value={Math.round(panelEfficiency * 100)}
           onChange={(e) => { const v = Number(e.target.value); if (v > 0 && v <= 100) setConfig({ panelEfficiency: v / 100 }) }} /></Field>
       </div>
     </div>
@@ -226,7 +227,7 @@ export function SetupPanel() {
       <div className="flex flex-col gap-3">
         <SectionTitle aside={detailed && <Segmented size="sm" label="Site source" value={mode} onChange={setMode}
           options={[{ value: 'catalog', label: 'Catalog' }, { value: 'custom', label: 'Custom' }]} className="w-[140px]" />}>
-          Landing site
+          <span className="flex items-center gap-1">Landing site<Help id="site" /></span>
         </SectionTitle>
         {!detailed && <><SiteSearch /><SelectedCard /></>}
         {detailed && mode === 'catalog' && (
