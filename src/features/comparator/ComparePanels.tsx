@@ -43,9 +43,10 @@ function ScenarioRow({ s, i }: { s: Scenario; i: number }) {
     <li className={`flex items-start gap-2.5 rounded-xl p-2.5 ring-1 ${shown ? 'raised ring-white/20' : 'ring-white/8'}`}>
       <Badge i={i} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        <span className="flex items-center gap-1.5"><span className="truncate text-[13px] font-bold">{s.site.label}</span>{result && <StatusChip small status={result.site.status} />}</span>
+        {/* Nombre solo en su fila: junto a la etiqueta de estado y los dos botones, se truncaba a 3 o 4 letras */}
+        <span title={s.site.label} className="truncate text-[13px] font-bold">{s.site.label}</span>
         {/* En Simple todo escenario arranca a las 00:00 UTC: la hora no aporta. Detailed la muestra, con las coordenadas */}
-        <span className="tnum text-xs text-ink-2">{shortDate(s.startUtc)}</span>
+        <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1"><span className="tnum text-xs whitespace-nowrap text-ink-2">{shortDate(s.startUtc)}</span>{result && <StatusChip small status={result.site.status} />}</span>
         {detailed && <span className="tnum flex flex-col font-mono text-[10px] whitespace-nowrap text-ink-3">
           <span>{s.startUtc.slice(11, 16)} UTC</span><span>{fmtCoord(s.site.lat, s.site.lon)}</span></span>}
         {loading && <span role="status" className="text-xs text-ink-3">Loading on the globe…</span>}
@@ -190,7 +191,8 @@ export function CompareMatrix() {
   const metrics = detailed ? DETAILED_METRICS : SIMPLE_METRICS
   return (
     <Panel label="Side by side" peekAside={comparing ? 'Comparing…' : `${scenarios.length} scenarios`}
-      className="absolute top-0 right-0 max-h-[calc(100%-180px)] w-[min(680px,100%)] gap-0 overflow-y-auto">
+      // Termina encima del timeline (≈208 px de alto + 16 de separación); con 180 tapaba su fila de controles
+      className="absolute top-0 right-0 max-h-[calc(100%-224px)] w-[min(680px,100%)] gap-0 overflow-y-auto">
       <div className="grid gap-x-4" style={{ gridTemplateColumns: `128px repeat(${scenarios.length}, minmax(0, 1fr))` }}>
         <div className="flex flex-col pb-3"><h2 className="text-[15px] font-bold">Side by side</h2><span className="text-[11px] text-ink-3">Computed by the simulation server</span></div>
         {scenarios.map((s, i) => (

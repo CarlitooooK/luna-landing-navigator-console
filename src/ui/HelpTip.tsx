@@ -51,8 +51,10 @@ export function HelpTip({ term, text, tryText, className }: { term: string; text
         <CircleHelp size={13} aria-hidden />
       </button>
       <span id={srId} className="sr-only">{`${text}${tryText ? ` Try: ${tryText}` : ''}`}</span>
+      {/* El popover hereda del DOM aunque se pinte en la capa superior: dentro de un control con whitespace-nowrap
+          (Live data) el texto salía en una sola línea y se cortaba. whitespace-normal lo vuelve a partir. */}
       <div ref={bubble} id={bubbleId} popover="auto" role="status" {...hover}
-        className="glass glass-strong drip fixed m-0 w-[260px] rounded-2xl p-3 text-left text-xs leading-[18px] text-ink-2 [inset:auto]">
+        className="glass glass-strong drip fixed m-0 w-[260px] rounded-2xl p-3 text-left text-xs leading-[18px] font-normal whitespace-normal text-ink-2 [inset:auto]">
         <p><span className="font-bold text-ink">{term}. </span>{text}</p>
         {tryText && <p className="mt-1.5 text-ink"><span className="font-bold">Try: </span>{tryText}</p>}
       </div>

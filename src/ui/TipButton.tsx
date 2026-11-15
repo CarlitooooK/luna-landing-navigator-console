@@ -55,7 +55,7 @@ export function TipButton({ tip, children, onPointerEnter, onPointerLeave, onPoi
       {/* Se puede pasar el cursor a la burbuja sin que se cierre (WCAG 1.4.13) */}
       <div ref={bubble} popover="manual" role="tooltip" aria-hidden
         onPointerEnter={() => window.clearTimeout(timer.current)} onPointerLeave={() => later(hide, TIP_CLOSE_MS)}
-        className="glass glass-strong drip fixed m-0 w-[260px] rounded-2xl p-3 text-left text-xs leading-[18px] font-normal text-ink-2 [inset:auto]">
+        className="glass glass-strong drip fixed m-0 w-[260px] rounded-2xl p-3 text-left text-xs leading-[18px] font-normal whitespace-normal text-ink-2 [inset:auto]">
         <p><span className="font-bold text-ink">{tip.term}. </span>{tip.text}</p>
       </div>
     </>

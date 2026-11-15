@@ -127,7 +127,7 @@ History no tiene píldoras de escena ni timeline.
 
 | Control | Acción | Red |
 | --- | --- | --- |
-| Buscador y región | Filtra el catálogo estático de 7 alunizajes | No |
+| Buscador y región | Filtra el catálogo estático de 7 alunizajes. Con poco alto de ventana solo se desplaza la lista; buscador, filtros y la nota de fuentes quedan fijos dentro de la tarjeta | No |
 | Tarjeta de misión | `pickMission()`; muestra fecha, región, coordenadas, resumen y fuentes | No |
 | "Replay landing window" | Selecciona el sitio de la misión (`id: mission:<id>`), fija el inicio en la hora en punto anterior al alunizaje y 14 días, y evalúa | Sí, `evaluate()` |
 | "Conditions at touchdown" | Sol, Tierra y pendiente del paso 0 de esa evaluación | — |

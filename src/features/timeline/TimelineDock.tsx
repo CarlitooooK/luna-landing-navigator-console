@@ -98,7 +98,8 @@ export function TimelineDock() {
 
   return (
     <Panel label="Timeline" tour="timeline" peek="inline" className="w-full max-w-[688px] gap-2.5 px-4 py-3 [--peek-h:58px]">
-      <div className="flex items-center justify-between gap-3">
+      {/* Con paneles a ambos lados (1280 px) no cabe todo en una fila: el selector de vista baja a la siguiente */}
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <div className="flex items-center gap-3">
           <button onClick={() => { if (!playing && stepIndex >= n - 1) setStep(0); setPlaying(!playing) }} aria-label={playing ? 'Pause' : 'Play'}
             className="btn-primary grid size-8 place-items-center rounded-full">
