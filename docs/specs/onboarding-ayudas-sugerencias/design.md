@@ -199,9 +199,9 @@ Qué sugerencia toca lo decide una función pura `nextStep(state)` en `src/featu
 | --- | --- | --- | --- |
 | Sin conexión | `health = null` y `ERR_NETWORK` | The simulation server is unreachable. Sites and simulations are paused; it retries every 20 seconds. | "Retry now" → `init()` |
 | Sin sitio | `selected = null` | Pick a landing site to begin: search the catalog or click the globe. | "Browse sites" → enfoca el buscador. Secundaria: "Replay a real mission" → Missions |
-| Listo para simular | Sitio elegido, sin evaluación | Ready: {site}, {date}, {n} days. | Ninguna propia: señala "Run simulation", que es el `btn-primary` |
+| Listo para simular | Sitio elegido, sin evaluación | Ready: {site}, {date}, {n} days. Run the simulation to see the verdict. | Ninguna propia: señala "Run simulation", que es el `btn-primary` |
 | Calculando | `loading` | — (el esqueleto ya lo dice) | — |
-| Resultados desactualizados | El sitio, la fecha, la duración, el paso o los paneles ya no son los de la última evaluación | These results are for {site}, {date}. Run again to update them. | "Run again" → `evaluate()`. Results se atenúa al 60% con el rótulo "Out of date" |
+| Resultados desactualizados | El sitio, la fecha, la duración, el paso o los paneles ya no son los de la última evaluación | The setup changed since the last run. Run the simulation again to update the results. (El sitio y la fecha de la corrida ya los dice el aviso "Out of date" de A4.) | "Run again" → `evaluate()`. Results se atenúa al 60% con el rótulo "Out of date" |
 | GO | `status = 'GO'` | A good window. Save it, or check whether a launch slip would cost you. | "Compare dates". Secundaria: "Save to history" |
 | CAUTION o NO-GO con `checks` | Ver 3.3 | Ver 3.3 | Ver 3.3 |
 | CAUTION o NO-GO sin `checks` | v1.1 | CAUTION: One condition is marginal. See how other dates compare. · NO-GO: One condition fails. See how other dates compare, or try another site. | "Compare dates". Secundaria: "Change site" |
