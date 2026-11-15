@@ -1,7 +1,8 @@
-import { Globe2, Mountain, Snowflake, Sun, Zap, type LucideIcon } from 'lucide-react'
+import { AlertTriangle, Check, Globe2, Mountain, Snowflake, Sun, X, Zap, type LucideIcon } from 'lucide-react'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { countdown, type Body, type Countdown as CountdownT } from '@/core/utils/countdown'
 import { isStale } from '@/core/utils/stale'
+import { verdictReasons, type Level } from '@/core/utils/verdict'
 import { Help } from '@/features/help/Help'
 import type { HelpId } from '@/features/help/glossary'
 import { deg, formatHours, hoursShort, pct, pctWhole } from '@/core/utils/timeline'
@@ -71,6 +72,33 @@ function Row({ k, a, b, ac, bc, help }: { k: string; a: string; b?: string; ac?:
   )
 }
 
+// Ícono y color por nivel: nunca solo el color (design.md §2.7).
+const LEVEL: Record<Level, { icon: LucideIcon; className: string; label: string }> = {
+  ok: { icon: Check, className: 'text-go', label: 'Passes' },
+  caution: { icon: AlertTriangle, className: 'text-caution', label: 'Marginal' },
+  nogo: { icon: X, className: 'text-nogo', label: 'Fails' },
+}
+
+/** El porqué del veredicto: los checks del servidor, o sus notas en español si el ambiente no los manda (tarea B5). */
+function VerdictList({ site }: { site: Parameters<typeof verdictReasons>[0] }) {
+  const v = verdictReasons(site)
+  if (v.source === 'reasons') {
+    return <ul className="flex flex-col gap-1.5">{v.items.map((r) => <li key={r} className="text-xs leading-[17px] text-ink" lang="es">{r}</li>)}</ul>
+  }
+  return (
+    <ul className="flex flex-col gap-1.5">
+      {v.items.map((c) => {
+        const l = LEVEL[c.level]
+        return (
+          <li key={c.code} className="flex items-start gap-2 text-xs leading-[17px] text-ink">
+            <l.icon size={14} className={`mt-px shrink-0 ${l.className}`} aria-label={l.label} />{c.message}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 function Simple() {
   const ev = useMissionStore((s) => s.evaluation)!
   const point = useMissionStore((s) => s.evaluation?.timeline[s.stepIndex])
@@ -81,7 +109,8 @@ function Simple() {
       <div className="flex flex-col items-start gap-2">
         <span className="flex items-center gap-1"><StatusChip status={site.status} /><Help id="verdict" /></span>
         <h3 className="text-[22px] leading-[27px] font-bold text-balance">{h.title}</h3>
-        <p className="text-[13px] leading-[19px] text-ink-2">{h.body}</p>
+        {/* Con checks, la causa reemplaza al párrafo genérico; sin ellos (v1.1) queda el párrafo, sin razones en español */}
+        {verdictReasons(site).source === 'checks' ? <VerdictList site={site} /> : <p className="text-[13px] leading-[19px] text-ink-2">{h.body}</p>}
       </div>
       <Divider />
       <Countdown icon={Sun} signal="sun" label="Daylight" help="daylight" body="sun" c={countdown(m, ev.timeline, 'sun')}
@@ -103,16 +132,14 @@ function Detailed() {
   const panelAreaM2 = useMissionStore((s) => s.panelAreaM2)
   const panelEfficiency = useMissionStore((s) => s.panelEfficiency)
   const { summary: m, site } = ev
+  const reasons = verdictReasons(site)
   const clear = (el?: number, hz?: number) => (el == null || hz == null ? '—' : `${el - hz >= 0 ? '+' : ''}${(el - hz).toFixed(2)}°`)
   return (
     <>
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between"><span className="flex items-center gap-1"><StatusChip status={site.status} /><Help id="verdict" /></span>
-          <span className="text-xs text-ink-2">Server notes (in Spanish)</span></div>
-        {/* reasons llega en español; la tarea B5 de la spec de onboarding las sustituye por site.checks (inglés) cuando el backend los manda */}
-        <ul className="flex flex-col gap-1.5">
-          {site.reasons.map((r) => <li key={r} className="text-xs leading-[17px] text-ink" lang="es">{r}</li>)}
-        </ul>
+          <span className="text-xs text-ink-2">{reasons.source === 'checks' ? `${reasons.items.length} checks from the server` : 'Server notes (in Spanish)'}</span></div>
+        <VerdictList site={site} />
       </div>
       <Divider />
       <div className="flex flex-col gap-0.5">
