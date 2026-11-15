@@ -5,8 +5,8 @@ export type TourStatus = 'unseen' | 'dismissed' | 'completed'
 export type TourAnchor = 'setup' | 'results' | 'timeline' | 'scene' | 'detail' | 'rail'
 export type TourActionId = 'try-scenario' | 'run' | 'play' | 'horizon' | 'toggle-detail'
 
-/** Escenario del tour (D3 del README de la spec): GO del 9 al 21 de diciembre con el Backend oficial. */
-export const TOUR_SCENARIO = { siteId: 'apollo-11', startUtc: '2026-12-13T00:00:00Z', durationDays: 14 } as const
+/** Escenario del tour (D3 del README de la spec): con el Backend oficial, Apollo 15 da GO el 13 de diciembre (verificado el 2026-11-15). */
+export const TOUR_SCENARIO = { siteId: 'apollo-15', startUtc: '2026-12-13T00:00:00Z', durationDays: 14 } as const
 
 export interface TourStep {
   id: 'intro' | TourAnchor
@@ -38,7 +38,7 @@ export interface TourInput {
 }
 
 /**
- * El sitio que propone "Try …": Apollo 11 con su fecha, o el primero de `/sites` con la fecha que tenga Setup.
+ * El sitio que propone "Try …": Apollo 15 con su fecha, o el primero de `/sites` con la fecha que tenga Setup.
  * `null` sin sitios.
  */
 export function tourScenario(sites: TourInput['sites'], startUtc: string): { siteId: string; label: string; startUtc: string; durationDays?: number } | null {
@@ -61,8 +61,8 @@ function setupStep(st: TourInput): TourStep {
   const onScenario = st.selected.id === TOUR_SCENARIO.siteId && st.startUtc === TOUR_SCENARIO.startUtc
   return { ...base, action: run,
     text: !onScenario ? `You picked ${st.selected.label}. ${SETUP_TAIL}`
-      : st.evaluated ? 'Apollo 11 on Dec 13, 2026: a good window. Press Next to see why.'
-      : 'Apollo 11 on Dec 13, 2026: a good window. Run the simulation to see why.' }
+      : st.evaluated ? 'Apollo 15 on Dec 13, 2026: a good window. Press Next to see why.'
+      : 'Apollo 15 on Dec 13, 2026: a good window. Run the simulation to see why.' }
 }
 
 function sceneStep(st: TourInput): TourStep | null {

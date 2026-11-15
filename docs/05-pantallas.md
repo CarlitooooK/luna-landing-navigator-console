@@ -155,7 +155,7 @@ Siete pasos (seis sin píldoras de escena) en `features/onboarding/`: `Tour.tsx`
 | Paso | Ancla | Acción del paso | Red |
 | --- | --- | --- | --- |
 | 1. Find a safe place to land on the Moon | — | "Take the tour" · "Skip" | No |
-| 2. Where, when, run | `setup` | Sin sitio: "Try Apollo 11" (`select` + `setConfig` con `TOUR_SCENARIO`). Con sitio: "Run simulation" o "Run again" (`evaluate`). Sin backend: ninguna, con nota | Sí, `evaluate()` |
+| 2. Where, when, run | `setup` | Sin sitio: "Try Apollo 15" (`select` + `setConfig` con `TOUR_SCENARIO`). Con sitio: "Run simulation" o "Run again" (`evaluate`). Sin backend: ninguna, con nota | Sí, `evaluate()` |
 | 3. The verdict, and why | `results` | — | — |
 | 4. Time is the main control | `timeline`, o centrada sin evaluación | "Play" / "Pause" (`setPlaying`) | No |
 | 5. See it on the ground | `scene` (fila de píldoras) | "Horizon view" (`requestHorizon`) con el globo listo. Si el horizonte ya está abierto (lo abrió el paso 2), describe la vista y no lleva botón. Sin globo solo describe "Terrain detail" o "Global view". Se omite sin píldoras | No |
