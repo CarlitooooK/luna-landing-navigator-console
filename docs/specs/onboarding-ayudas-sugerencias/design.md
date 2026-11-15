@@ -233,11 +233,11 @@ El texto se decide en este orden, mirando primero `timeline[0]` y después el re
 | # | Condición | Sol | Tierra |
 | --- | --- | --- | --- |
 | 1 | `*_visible_pct` es 0 | "No sunlight in this window" | "Earth never in view" |
-| 2 | Oculto en `timeline[0]`; el primer punto visible está a `h` horas del inicio | "Sunrise in {h} hours" | "Earth rises in {h} hours" |
+| 2 | Oculto en `timeline[0]`; el primer punto visible está a `h` horas del inicio | "{h} hours until sunrise" | "{h} hours until Earth rises" |
 | 3 | Visible en `timeline[0]` y `hours_to_next_*` es un número | "{n} hours until sunset" | "{n} hours until Earth sets" |
 | 4 | Visible en `timeline[0]` y `hours_to_next_*` es `null` | "No sunset in this window" | "Earth stays in view" |
 
-`h` son las horas entre `timeline[0].timestamp_utc` y ese primer punto. Es leer el timeline que manda el backend, no calcular física. La misma regla aplica a la fila "Next set" de Detailed: en el caso 2 dice "Rises in".
+`h` son las horas entre `timeline[0].timestamp_utc` y ese primer punto. Es leer el timeline que manda el backend, no calcular física. La misma regla aplica a la fila "Next set" de Detailed: "{h} h", "rise {h} h", "never" o "no set". La implementación es `src/core/utils/countdown.ts`.
 
 **Porcentaje redondeado.** "Sunlit 0% of the mission" con el Sol arriba una hora (Shackleton Rim, 0.3 %) parece una contradicción. Cuando el porcentaje es mayor que 0 y menor que 1, se muestra "<1%".
 

@@ -47,4 +47,6 @@ export function formatHours(h: number | null | undefined): { value: string; unit
 export const hoursShort = (h: number | null | undefined) => (h == null ? '—' : `${Math.round(h)} h`)
 
 export const pct = (v: number | null | undefined, digits = 1) => (v == null ? '—' : `${v.toFixed(digits)}%`)
+/** Porcentaje sin decimales que no redondea a 0 % algo que sí pasó: 0.3 % se muestra "<1%". */
+export const pctWhole = (v: number | null | undefined) => (v == null ? '—' : v > 0 && v < 1 ? '<1%' : `${Math.round(v)}%`)
 export const deg = (v: number | null | undefined, digits = 2) => (v == null ? '—' : `${v.toFixed(digits)}°`)

@@ -35,8 +35,8 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
   - `Countdown` de Simple y la fila "Next set" de Detailed la usan. Los porcentajes entre 0 y 1 se muestran como "<1%".
 - **Aceptación (Backend oficial, 2026-12-01, 14 días, 60 min):**
   - Chang'e 4 (2019-01-03) lee "Earth never in view".
-  - Peak Near Shackleton lee "Earth rises in N hours", no "Earth stays in view".
-  - Apollo 11 lee "Sunrise in N hours", no "No sunset in this window".
+  - Peak Near Shackleton lee "13d 7h until Earth rises", no "Earth stays in view".
+  - Apollo 11 lee "N hours until sunrise", no "No sunset in this window".
   - Shackleton Rim lee "1 hour until sunset" y "Sunlit <1% of the mission".
 - **Pruebas:** `countdown.test.ts` cubre las cuatro filas de la tabla de 3.4 para el Sol y para la Tierra, el orden entre ellas (la fila 1 gana a la 2) y el redondeo "<1%".
 

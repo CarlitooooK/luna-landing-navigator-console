@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { TimelinePoint } from '@/types'
-import { bothRuns, coverage, formatHours, runs, stepHours, sunRuns } from './timeline'
+import { bothRuns, coverage, formatHours, pctWhole, runs, stepHours, sunRuns } from './timeline'
 
 const pt = (i: number, sun: boolean, earth: boolean): TimelinePoint => ({
   timestamp_utc: new Date(Date.UTC(2026, 11, 1, i)).toISOString().replace(/\.\d{3}Z$/, 'Z'),
@@ -26,4 +26,12 @@ describe('formatHours', () => {
   test('menos de 2 días en horas', () => expect(formatHours(36)).toEqual({ value: '36', unit: 'hours' }))
   test('días exactos', () => expect(formatHours(168)).toEqual({ value: '7', unit: 'days' }))
   test('días y horas', () => expect(formatHours(112)).toEqual({ value: '4d 16h', unit: '' }))
+})
+
+test('pctWhole no redondea a 0 % algo que sí pasó', () => {
+  expect(pctWhole(0)).toBe('0%')
+  expect(pctWhole(0.3)).toBe('<1%')
+  expect(pctWhole(1)).toBe('1%')
+  expect(pctWhole(71.1)).toBe('71%')
+  expect(pctWhole(null)).toBe('—')
 })

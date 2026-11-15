@@ -1,6 +1,7 @@
 import { Globe2, Mountain, Snowflake, Sun, Zap, type LucideIcon } from 'lucide-react'
 import { useMissionStore } from '@/core/store/useMissionStore'
-import { deg, formatHours, hoursShort, pct } from '@/core/utils/timeline'
+import { countdown, type Body, type Countdown as CountdownT } from '@/core/utils/countdown'
+import { deg, formatHours, hoursShort, pct, pctWhole } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Divider, Flow, IconWell, Meter, Panel, SectionTitle, Skeleton, StatusChip, type Signal } from '@/ui'
 import type { MissionStatus } from '@/types'
@@ -12,10 +13,19 @@ const HEADLINE: Record<MissionStatus, { title: string; body: string }> = {
   'NO-GO': { title: 'Not a safe choice', body: 'At least one condition fails for this window. Try another date or a nearby site.' },
 }
 
-function Countdown({ icon, signal, label, hours, until, none, note, share }: {
-  icon: LucideIcon; signal: Signal; label: string; hours: number | null | undefined; until: string; none: string; note: string; share: number
+// Texto de cada caso de countdown() (design.md §3.4). Los números de horas vienen del backend o de su timeline.
+const COUNTDOWN_TEXT: Record<Body, { set: string; rise: string; never: string; always: string; later: string }> = {
+  sun: { set: 'until sunset', rise: 'until sunrise', never: 'No sunlight in this window', always: 'No sunset in this window', later: 'Sunrise later in this window' },
+  earth: { set: 'until Earth sets', rise: 'until Earth rises', never: 'Earth never in view', always: 'Earth stays in view', later: 'Earth rises later in this window' },
+}
+
+function Countdown({ icon, signal, label, body, c, note, share }: {
+  icon: LucideIcon; signal: Signal; label: string; body: Body; c: CountdownT; note: string; share: number
 }) {
-  const f = formatHours(hours)
+  const t = COUNTDOWN_TEXT[body]
+  const f = c.kind === 'until-set' || c.kind === 'until-rise' ? formatHours(c.hours) : null
+  const until = c.kind === 'until-rise' ? t.rise : t.set
+  const none = c.kind === 'never' ? t.never : c.kind === 'always' ? t.always : t.later
   return (
     <div className="flex items-start gap-3">
       <IconWell icon={icon} signal={signal} />
@@ -30,6 +40,10 @@ function Countdown({ icon, signal, label, hours, until, none, note, share }: {
     </div>
   )
 }
+
+/** Celda compacta de "Next set" en Detailed. */
+const nextSetCell = (c: CountdownT) =>
+  c.kind === 'until-set' ? hoursShort(c.hours) : c.kind === 'until-rise' ? `rise ${hoursShort(c.hours)}` : c.kind === 'never' ? 'never' : c.kind === 'always' ? 'no set' : 'rise later'
 
 function Fact({ icon, signal, label, value, unit, note }: { icon: LucideIcon; signal: Signal; label: string; value: string; unit: string; note: string }) {
   return (
@@ -67,10 +81,10 @@ function Simple() {
         <p className="text-[13px] leading-[19px] text-ink-2">{h.body}</p>
       </div>
       <Divider />
-      <Countdown icon={Sun} signal="sun" label="Daylight" hours={m.hours_to_next_sunset} until="until sunset" none="No sunset in this window"
-        note={`Sunlit ${pct(m.sun_visible_pct, 0)} of the mission.`} share={m.sun_visible_pct / 100} />
-      <Countdown icon={Globe2} signal="earth" label="Talk to Earth" hours={m.hours_to_next_earthset} until="until Earth sets" none="Earth stays in view"
-        note={`Earth in view ${pct(m.earth_visible_pct, 0)} of the mission.`} share={m.earth_visible_pct / 100} />
+      <Countdown icon={Sun} signal="sun" label="Daylight" body="sun" c={countdown(m, ev.timeline, 'sun')}
+        note={`Sunlit ${pctWhole(m.sun_visible_pct)} of the mission.`} share={m.sun_visible_pct / 100} />
+      <Countdown icon={Globe2} signal="earth" label="Talk to Earth" body="earth" c={countdown(m, ev.timeline, 'earth')}
+        note={`Earth in view ${pctWhole(m.earth_visible_pct)} of the mission.`} share={m.earth_visible_pct / 100} />
       <Fact icon={Zap} signal="sun" label="Solar power now" value={point ? `${Math.round(point.power_factor * 100)}%` : '—'} unit="of panel output"
         note={`Peak in this window: ${(m.estimated_peak_power_w / 1000).toFixed(1)} kW.`} />
       <Fact icon={Mountain} signal="regolith" label="Ground" value={`${site.slope_deg.toFixed(1)}°`} unit="tilt"
@@ -112,7 +126,7 @@ function Detailed() {
         <Row k="Clearance" a={clear(p?.sun_el_deg, p?.sun_horizon_el_deg)} b={clear(p?.earth_el_deg, p?.earth_horizon_el_deg)} />
         <Row k="Visible in window" a={pct(m.sun_visible_pct)} b={pct(m.earth_visible_pct)} />
         <Row k="Longest stretch" a={hoursShort(m.max_continuous_sun_hours)} b={hoursShort(m.max_continuous_dte_hours)} />
-        <Row k="Next set" a={hoursShort(m.hours_to_next_sunset)} b={hoursShort(m.hours_to_next_earthset)} />
+        <Row k="Next set" a={nextSetCell(countdown(m, ev.timeline, 'sun'))} b={nextSetCell(countdown(m, ev.timeline, 'earth'))} />
         <p className="tnum pt-1 font-mono text-[11px] text-ink-3">
           Sunset {m.next_sunset_utc ? formatUtc(m.next_sunset_utc) : 'none in window'} · Earthset {m.next_earthset_utc ? formatUtc(m.next_earthset_utc) : 'none in window'}
         </p>
