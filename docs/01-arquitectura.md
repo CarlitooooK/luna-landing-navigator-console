@@ -91,6 +91,10 @@ Lo escribe **solo** el puente (`useGlobeBridge`) y los botones de escena (`Scene
 
 `zustand/persist` en `localStorage`, clave `lunar-navigator.history`, versión 1, límite 100 corridas. Guarda parámetros y `summary`, no el `timeline` (unos 180 KB por corrida): reabrir una corrida vuelve a evaluar.
 
+### `useOnboardingStore` (tour, persistente)
+
+`zustand/persist` en `localStorage`, clave `lunar-navigator.onboarding`, versión 1. Solo guarda `tour: { status, at }`, con `status` en `unseen`, `dismissed` o `completed`; el paso abierto (`step`) no se guarda. `migrateOnboarding()` (`features/onboarding/tour.ts`) normaliza lo guardado sin `version` o con un estado desconocido a `unseen`. Qué pasos tocan y con qué texto lo decide la función pura `resolveSteps()` del mismo archivo.
+
 ## Qué pasa al pulsar "Run simulation"
 
 ```

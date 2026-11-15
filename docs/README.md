@@ -37,6 +37,7 @@ Mapa completo de la consola: qué hace cada pantalla y cada control, qué render
                          │        └─ escena local Three.js (encima, solo en "Terrain detail")
                          ▼
                useHistoryStore ── localStorage (lunar-navigator.history)
+               useOnboardingStore ── localStorage (lunar-navigator.onboarding)
 ```
 
 - **Un solo cliente HTTP** (`src/core/api/`), **un solo archivo que habla con el iframe** (`useGlobeBridge.ts`).
