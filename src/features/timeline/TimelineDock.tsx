@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { Pause, Play } from 'lucide-react'
 import { useMissionStore } from '@/core/store/useMissionStore'
-import { bothRuns, coverage, dayOf, earthRuns, sliderStep, stepHours, sunRuns, type Run } from '@/core/utils/timeline'
+import { bothRuns, coverage, earthRuns, sliderStep, stepHours, sunRuns, type Run } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Panel, SIGNAL, Segmented, type Signal } from '@/ui'
 import { HorizonChart } from './HorizonChart'
@@ -44,7 +44,6 @@ export function TimelineDock() {
   const evaluation = useMissionStore((s) => s.evaluation)
   const stepIndex = useMissionStore((s) => s.stepIndex)
   const playing = useMissionStore((s) => s.playing)
-  const detail = useMissionStore((s) => s.detail)
   const setStep = useMissionStore((s) => s.setStep)
   const setPlaying = useMissionStore((s) => s.setPlaying)
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(4)
@@ -53,17 +52,15 @@ export function TimelineDock() {
   const t = useMemo(() => evaluation?.timeline ?? [], [evaluation])
   const n = t.length
   const tracks = useMemo(() => ({ sun: sunRuns(t), earth: earthRuns(t), both: bothRuns(t) }), [t])
-  usePlayback(n, detail === 'detailed' ? speed : 4)
+  usePlayback(n, speed)
   if (!evaluation || n === 0) return null
 
-  const detailed = detail === 'detailed'
-  // Columna de etiquetas: en Detailed lleva "?" y el porcentaje, así que es más ancha (tarea B4).
-  const labelW = detailed ? 148 : 104, laneLeft = labelW + 12
+  // El timeline va siempre en Detailed, sin importar Simple/Detailed: es donde se elige la velocidad y la vista de
+  // abajo (decisión del usuario, 2026-11-15). La columna de etiquetas lleva "?" y el porcentaje (tarea B4).
+  const labelW = 148, laneLeft = labelW + 12
   const hrs = stepHours(t)
   const totalH = n * hrs
   const p = t[stepIndex]
-  const day = dayOf(stepIndex * hrs)
-  const totalDays = Math.round(totalH / 24)
   const m = evaluation.summary
   const scrub = (e: PointerEvent<HTMLDivElement>) => {
     const r = lane.current!.getBoundingClientRect()
@@ -73,7 +70,7 @@ export function TimelineDock() {
   const stamp = formatUtc(p.timestamp_utc)
   const slider = {
     ref: lane, role: 'slider', tabIndex: 0, 'aria-label': 'Mission time', 'aria-valuemin': 0, 'aria-valuemax': n - 1, 'aria-valuenow': stepIndex,
-    'aria-valuetext': detailed ? `T+${Math.round(stepIndex * hrs)} h, ${stamp}` : `Day ${day} of ${totalDays}, ${stamp}`,
+    'aria-valuetext': `T+${Math.round(stepIndex * hrs)} h, ${stamp}`,
     onPointerDown: (e: PointerEvent<HTMLDivElement>) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e) },
     onPointerMove: (e: PointerEvent<HTMLDivElement>) => { if (e.buttons) scrub(e) },
     onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
@@ -89,15 +86,15 @@ export function TimelineDock() {
   )
   const rows: { label: string; pct: number; signal: Signal; runs: Run[]; help: HelpId }[] = [
     { label: 'Sunlight', pct: m.sun_visible_pct, signal: 'sun', runs: tracks.sun, help: 'daylight' },
-    { label: detailed ? 'Earth link' : 'Earth in view', pct: m.earth_visible_pct, signal: 'earth', runs: tracks.earth, help: 'earth-link' },
-    ...(detailed ? [{ label: 'Sun + Earth', pct: coverage(tracks.both, n) * 100, signal: 'go' as Signal, runs: tracks.both, help: 'both' as HelpId }] : []),
+    { label: 'Earth link', pct: m.earth_visible_pct, signal: 'earth', runs: tracks.earth, help: 'earth-link' },
+    { label: 'Sun + Earth', pct: coverage(tracks.both, n) * 100, signal: 'go', runs: tracks.both, help: 'both' },
   ]
   const tickEvery = totalH > 400 ? 120 : 72
   const ticks = Array.from({ length: Math.floor(totalH / tickEvery) + 1 }, (_, i) => i * tickEvery).filter((h) => h < totalH - tickEvery / 3)
-  const events = detailed ? [
+  const events = [
     m.hours_to_next_earthset != null && { label: 'Earthset', h: m.hours_to_next_earthset, signal: 'earth' as Signal },
     m.hours_to_next_sunset != null && { label: 'Sunset', h: m.hours_to_next_sunset, signal: 'sun' as Signal },
-  ].filter(Boolean) as { label: string; h: number; signal: Signal }[] : []
+  ].filter(Boolean) as { label: string; h: number; signal: Signal }[]
 
   return (
     <Panel label="Timeline" tour="timeline" peek="inline" className="w-full max-w-[688px] gap-2.5 px-4 py-3 [--peek-h:58px]">
@@ -108,22 +105,18 @@ export function TimelineDock() {
             <span key={String(playing)} className="condense grid place-items-center">
               {playing ? <Pause size={13} fill="currentColor" aria-hidden /> : <Play size={13} fill="currentColor" aria-hidden />}</span>
           </button>
-          {detailed && <Segmented size="sm" label="Playback speed" value={speed} onChange={setSpeed}
-            options={SPEEDS.map((s) => ({ value: s, label: `${s}×` }))} className="w-[120px]" />}
+          <Segmented size="sm" label="Playback speed" value={speed} onChange={setSpeed}
+            options={SPEEDS.map((s) => ({ value: s, label: `${s}×` }))} className="w-[120px]" />
           <div className="flex min-w-0 flex-col">
-            <span className="tnum text-sm font-bold">{detailed ? `T+${Math.round(stepIndex * hrs)} h` : `Day ${day} of ${totalDays}`}</span>
+            <span className="tnum text-sm font-bold">{`T+${Math.round(stepIndex * hrs)} h`}</span>
             <span className="tnum truncate font-mono text-[11px] text-ink-2">{formatUtc(p.timestamp_utc)}</span>
           </div>
         </div>
-        {detailed ? <span className="flex items-center gap-1"><Segmented size="sm" label="Bottom view" value={tab} onChange={setTab}
+        <span className="flex items-center gap-1"><Segmented size="sm" label="Bottom view" value={tab} onChange={setTab}
           options={[{ value: 'timeline', label: 'Timeline' }, { value: 'horizon', label: 'Horizon 360°' }]} className="w-[200px]" /><Help id="horizon-360" /></span>
-          : <div className="flex items-center gap-3.5 text-xs text-ink-2">
-              {rows.map((r) => <span key={r.label} className="flex items-center gap-1.5">
-                <span className="glow h-1.5 w-3 rounded-full" style={{ color: SIGNAL[r.signal], background: SIGNAL[r.signal] }} />{r.label}<Help id={r.help} /></span>)}
-            </div>}
       </div>
 
-      {tab === 'horizon' && detailed ? (
+      {tab === 'horizon' ? (
         <div className="flex flex-col gap-2">
           <HorizonChart profile={evaluation.horizon_profile} point={p} />
           {/* Mismo scrubber que en la pestaña Timeline, sin las pistas */}
@@ -147,15 +140,15 @@ export function TimelineDock() {
           <div className="grid items-center gap-x-3 gap-y-2" style={{ gridTemplateColumns: `${labelW}px 1fr` }}>
             {rows.map((r, i) => (
               <div key={r.label} className="contents">
-                <span className="flex items-center justify-between text-xs font-medium text-ink-2"><span className="flex items-center">{r.label}{detailed && <Help id={r.help} />}</span>
-                  {detailed && <span className="tnum font-mono text-[11px] text-ink-3">{r.pct.toFixed(1)}%</span>}</span>
-                <Track key={evaluation.site.lat + startUtc(t)} runs={r.runs} n={n} signal={r.signal} height={detailed ? 10 : 8} delay={120 + i * 110} />
+                <span className="flex items-center justify-between text-xs font-medium text-ink-2"><span className="flex items-center">{r.label}<Help id={r.help} /></span>
+                  <span className="tnum font-mono text-[11px] text-ink-3">{r.pct.toFixed(1)}%</span></span>
+                <Track key={evaluation.site.lat + startUtc(t)} runs={r.runs} n={n} signal={r.signal} height={10} delay={120 + i * 110} />
               </div>
             ))}
             <span />
             <div className="relative h-3.5">
               {ticks.map((h) => <span key={h} className="tnum absolute font-mono text-[10px] text-ink-3" style={{ left: `${(h / totalH) * 100}%` }}>
-                {detailed ? (h === 0 ? 'T+0' : `${h} h`) : (h === 0 ? 'Landing' : `Day ${dayOf(h)}`)}</span>)}
+                {h === 0 ? 'T+0' : `${h} h`}</span>)}
             </div>
           </div>
           {/* Zona de arrastre + playhead sobre las pistas */}

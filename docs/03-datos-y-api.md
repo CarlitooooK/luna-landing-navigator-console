@@ -58,7 +58,7 @@ Campos de la respuesta y dónde se ven:
 | `site.nearest_psr_km` | Results (Simple "Permanent shadow N km away", Detailed) |
 | `site.lat`, `site.lon` | Sitio de los vectores para el globo y de la escena de alunizaje |
 | `summary.sun_visible_pct`, `earth_visible_pct` | Medidores de Results, pistas del timeline, History, Compare |
-| `summary.hours_to_next_sunset` / `earthset` | Cuentas regresivas de Results; banderas del timeline en Detailed |
+| `summary.hours_to_next_sunset` / `earthset` | Cuentas regresivas de Results; banderas del timeline |
 | `summary.next_sunset_utc` / `next_earthset_utc` | Results › Detailed (pueden venir `null`: "none in window") |
 | `summary.max_continuous_sun_hours` / `dte_hours` | Results › Detailed "Longest stretch" |
 | `summary.avg_power_factor`, `estimated_peak_power_w` | Results |
@@ -67,7 +67,7 @@ Campos de la respuesta y dónde se ven:
 | `timeline[].sun_az_deg`, `sun_el_deg`, `sun_horizon_el_deg` (y los de la Tierra) | Results › Detailed; marcadores del horizonte 360°; Missions "Conditions at touchdown" (paso 0) |
 | `timeline[].power_factor` | "Solar power now" |
 | `timeline[].sun_vector_3d`, `earth_vector_3d` | Luz y marcadores de la escena local; `SET_SUN_LOCAL` / `SET_EARTH_LOCAL` al globo, **tal cual** (D-008) |
-| `horizon_profile[]` | Timeline › Detailed › "Horizon 360°" |
+| `horizon_profile[]` | Timeline › "Horizon 360°" |
 | `site.checks` (v1.2) | **No se usa todavía.** Trae el veredicto en inglés con `code`/`level`/`value`/`threshold` |
 
 ### `GET /terrain/patch`
