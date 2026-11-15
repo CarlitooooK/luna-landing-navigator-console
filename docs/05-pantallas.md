@@ -37,7 +37,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Catalog / Custom | Detailed | Elige entre selector de sitios y coordenadas libres | — |
 | Selector "Site" | Detailed › Catalog | `select()` | No |
 | Latitude / Longitude | Detailed › Custom | Valida `[-90, 90]` y `[-180, 360]` (D-010) y hace `select()` de un "Custom pin" en cada cambio válido | No |
-| Date / Time (UTC) | Ambos | `setConfig({startUtc})` | No |
+| Date / Time (UTC) | Ambos | `setConfig({startUtc})`. La hora es un campo de texto de 24 horas (`HH:MM`, `parseUtcTime`), validado al salir o con Enter; no usa `<input type="time">` porque sigue el formato de 12 horas del sistema | No |
 | Mission length | Ambos | 7, 14 o 29,5 días | No |
 | Time step | Detailed | 15, 60 o 120 min | No |
 | Solar panels | Simple: resumen que se abre; Detailed: siempre abierto | Área (m²) y eficiencia (%) | No |

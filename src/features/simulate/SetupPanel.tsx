@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FocusEvent, type KeyboardEvent } fro
 import { Bookmark, BookmarkCheck, ChevronRight, MapPin, Play, Search, Zap } from 'lucide-react'
 import { STEP_OPTIONS, useMissionStore, type SelectedSite } from '@/core/store/useMissionStore'
 import { useHistoryStore } from '@/core/store/useHistoryStore'
-import { toUtcIso } from '@/core/utils/time'
+import { parseUtcTime, toUtcIso } from '@/core/utils/time'
 import { fmtCoord } from '@/core/utils/coordinates'
 import { isStale } from '@/core/utils/stale'
 import { Button, Divider, Field, IconButton, IconWell, Input, Panel, SectionTitle, Segmented } from '@/ui'
@@ -109,6 +109,28 @@ function CustomCoords() {
   )
 }
 
+/**
+ * Hora de alunizaje en 24 horas (tarea A9). `<input type="time">` sigue el idioma del sistema: con en-US,
+ * las 00:00 UTC se veían "12:00" con el AM recortado. Se valida al salir del campo o con Enter.
+ */
+function TimeField({ time, onCommit }: { time: string; onCommit: (t: string) => void }) {
+  const [draft, setDraft] = useState(time)
+  const [error, setError] = useState<string>()
+  useEffect(() => { setDraft(time); setError(undefined) }, [time]) // p. ej. Missions o History cambian la hora
+  const commit = () => {
+    const t = parseUtcTime(draft)
+    if (!t) return setError('Use 24-hour time, for example 05:00.')
+    setError(undefined); setDraft(t)
+    if (t !== time) onCommit(t)
+  }
+  return (
+    <Field label="Time (UTC)" error={error}>
+      <Input mono inputMode="numeric" maxLength={5} placeholder="HH:MM" value={draft} invalid={!!error}
+        onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit() }} />
+    </Field>
+  )
+}
+
 function WindowFields({ detailed }: { detailed: boolean }) {
   const { startUtc, durationDays, stepMinutes, setConfig } = useMissionStore()
   const date = startUtc.slice(0, 10), time = startUtc.slice(11, 16)
@@ -117,7 +139,7 @@ function WindowFields({ detailed }: { detailed: boolean }) {
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-[1.35fr_1fr] gap-2.5">
         <Field label="Date"><Input type="date" value={date} onChange={(e) => set(e.target.value, time)} /></Field>
-        <Field label="Time (UTC)"><Input type="time" mono value={time} onChange={(e) => set(date, e.target.value)} /></Field>
+        <TimeField time={time} onCommit={(t) => set(date, t)} />
       </div>
       <Field label="Mission length" hint={detailed ? undefined : '14 days is one lunar daylight period.'}>
         <Segmented label="Mission length" value={durationDays} onChange={(v) => setConfig({ durationDays: v })}
