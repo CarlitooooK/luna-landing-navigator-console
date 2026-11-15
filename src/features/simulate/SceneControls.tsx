@@ -1,4 +1,4 @@
-import { Clapperboard, Globe2, LogOut, Mountain, Sunrise } from 'lucide-react'
+import { Clapperboard, Globe2, LogOut, Mountain, Sunrise, User } from 'lucide-react'
 import { GLOBE_URL } from '@/core/config'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { useGlobeStore } from '@/core/store/useGlobeStore'
@@ -33,6 +33,8 @@ export function SceneControls() {
   const link = useGlobeStore((s) => s.link)
   const requestLanding = useGlobeStore((s) => s.requestLanding)
   const clearLanding = useGlobeStore((s) => s.clearLanding)
+  const astronaut = useGlobeStore((s) => s.astronaut)
+  const setAstronaut = useGlobeStore((s) => s.setAstronaut)
   const horizon = useGlobeStore((s) => s.horizon)
   const requestHorizon = useGlobeStore((s) => s.requestHorizon)
   const clearHorizon = useGlobeStore((s) => s.clearHorizon)
@@ -81,6 +83,11 @@ export function SceneControls() {
       {globeReady && (
         <Pill onClick={requestLanding} aria-label="Watch an illustrative landing at this site">
           <Clapperboard size={14} aria-hidden />Landing scene
+        </Pill>
+      )}
+      {globeReady && (
+        <Pill onClick={() => setAstronaut(!astronaut)} aria-pressed={astronaut} aria-label={`Astronaut in the landing scene: ${astronaut ? 'on' : 'off'}`}>
+          <User size={14} aria-hidden />Astronaut {astronaut ? 'on' : 'off'}
         </Pill>
       )}
       {hasTerrain && (

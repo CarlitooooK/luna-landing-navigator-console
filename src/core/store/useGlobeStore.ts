@@ -13,6 +13,9 @@ const HORIZON_NONE: Horizon = { requested: false, phase: null }
 
 interface GlobeState {
   link: GlobeLink
+  /** Si aparece un astronauta junto al módulo al posarse (opción de `PLAY_LANDING_SCENE`). */
+  astronaut: boolean
+  setAstronaut: (on: boolean) => void
   landing: Landing
   horizon: Horizon
   requestHorizon: () => void
@@ -28,6 +31,8 @@ interface GlobeState {
 
 export const useGlobeStore = create<GlobeState>((set) => ({
   link: 'idle',
+  astronaut: true,
+  setAstronaut: (astronaut) => set({ astronaut }),
   landing: NONE,
   horizon: HORIZON_NONE,
   requestHorizon: () => set({ horizon: { requested: true, phase: null }, landing: NONE }),

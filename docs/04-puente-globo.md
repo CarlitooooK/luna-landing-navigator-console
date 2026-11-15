@@ -30,6 +30,7 @@ El globo es una app aparte (CesiumJS) que la consola incrusta en un iframe (D-01
 | `SET_SKY_GLOBAL` | Con `READY`, al cargar `ephemeris` y al cambiar la fecha, **solo sin evaluación** (con una, el cielo sale de los vectores del sitio) | `GET /ephemeris` de la fecha de inicio: `direction` del Sol y de la Tierra y `distance_km` de la Tierra |
 | `SET_PSR` | Con `READY`; cuando cambia `psrs` o `polePsrs` | `gid`, `name`, `geometry`. Las de `/psr/nearby` del sitio evaluado si las hay; si no, las de `/psr?min_area_km2=50` (≈ 67 regiones del polo) |
 | `SET_COMPARE_PINS` | Con `READY`; al cambiar `scenarios`, `comparison`, `rankBy` o `workspace` | Letras A–E de los escenarios, solo en el workspace Compare (fuera, lista vacía). Con comparación hecha llevan `status` del backend y `best` según el criterio "Rank by" |
+| `SET_PAUSED` | Al pasar `viewMode` a `'site'` (600 ms después, tras el fundido) y a `false` al volver; con `READY` si ya estaba en `'site'` | `{paused}`: el globo deja de dibujar mientras "Terrain detail" lo tapa |
 | `SET_CUSTOM_PIN` | Con `READY`; al cambiar `selected` o `sites` | Marcador del lugar elegido que no es del catálogo (clic libre o una misión); `null` si es un sitio del catálogo |
 | `SELECT_SITE` | Al recibir `READY` (si hay selección y no hay escena pedida); al cambiar `selected`; al terminar un `evaluate()` **en un sitio distinto al de la corrida anterior** (misma ubicación y otra fecha no repite el vuelo); al salir de la escena. **No** durante la escena | `{id, lat, lon, label}`. El globo vuela 2,5 s a 120 km sobre el sitio |
 | `SET_HORIZON_DETAIL` | Al recibir `READY` y al cambiar `detail` | `{detailed}`. Simple muestra nombres; Detailed añade azimut, elevación y holgura |
@@ -37,7 +38,7 @@ El globo es una app aparte (CesiumJS) que la consola incrusta en un iframe (D-01
 | `SET_SKY_STATE` | Junto a `SET_SUN_LOCAL` / `SET_EARTH_LOCAL` (cada cambio de `stepIndex`) | `{sun, earth}` con `az`, `el`, `horizonEl`, `visible` de `timeline[stepIndex]` |
 | `SHOW_HORIZON` | Tras `SET_HORIZON` y el cielo, al pasar `horizon.requested` a `true`; en `READY` si ya estaba pedida | `{lat, lon}` de `evaluation.site`. El globo baja de la esfera al suelo |
 | `EXIT_HORIZON` | Al pasar `horizon.requested` a `false` (salvo si empieza la escena de alunizaje, que cierra el horizonte sola) | — |
-| `PLAY_LANDING_SCENE` | Al pasar `landing.requested` a `true`, o en `READY` si ya estaba pedida | Solo `{lat, lon}` de `evaluation.site`. Antes se reenvían Sol y Tierra del paso actual |
+| `PLAY_LANDING_SCENE` | Al pasar `landing.requested` a `true`, o en `READY` si ya estaba pedida | `{lat, lon}` de `evaluation.site`, más `astronaut: false` si el interruptor "Astronaut" está apagado. Antes se reenvían Sol y Tierra del paso actual |
 | `STOP_LANDING_SCENE` | Al pasar `landing.requested` a `false` ("Exit scene" o error) | — |
 
 Declarados pero sin uso hoy: `RESET`. Existen en el globo y la consola no los usa: `SET_VIEW`, `LOOK_AT`, `VIEW_FROM_SURFACE`, `SET_CONFIG`, `SET_VEHICLES`, `VIEW_VEHICLE`, `SET_TRAJECTORY`, `FOLLOW_TRAJECTORY`, `PLAY_ANIMATION`.

@@ -72,6 +72,10 @@ export function comparePins(scenarios: Scenario[], comparison: CompareResponse |
   })
 }
 
+/** Mismo lugar (aunque cambie la fecha o el nombre): el globo no necesita volar de nuevo. */
+export const samePlace = (a: { lat: number; lon: number } | null | undefined, b: { lat: number; lon: number } | null | undefined): boolean =>
+  !!a && !!b && sameSpot(a, b)
+
 /** Marcador para un lugar elegido que no es un sitio del catálogo (clic libre en el globo o una misión). */
 export function customPinMessage(selected: SelectedSite | null, sites: Site[]): Extract<ToGlobe, { type: 'SET_CUSTOM_PIN' }> {
   if (!selected || sites.some((s) => s.id === selected.id)) return { type: 'SET_CUSTOM_PIN', payload: null }
@@ -88,9 +92,9 @@ export const psrItems = (psrs: PsrNearby | null): GlobePsr[] =>
   (psrs?.psrs ?? []).map((p) => ({ gid: p.gid, name: p.name, geometry: p.geometry }))
 
 /** Escena de alunizaje en el sitio evaluado. Solo lat/lon: el resto son decisiones de cámara con valores por defecto del globo. */
-export function landingMessage(evaluation: Evaluation | null): ToGlobe | null {
+export function landingMessage(evaluation: Evaluation | null, opts: { astronaut?: boolean } = {}): ToGlobe | null {
   if (!evaluation) return null
-  return { type: 'PLAY_LANDING_SCENE', payload: { lat: evaluation.site.lat, lon: evaluation.site.lon } }
+  return { type: 'PLAY_LANDING_SCENE', payload: { lat: evaluation.site.lat, lon: evaluation.site.lon, ...(opts.astronaut === false ? { astronaut: false } : {}) } }
 }
 
 /** Acepta solo mensajes del iframe del globo y de su origen exacto (docs/11 §3, seguridad). */
