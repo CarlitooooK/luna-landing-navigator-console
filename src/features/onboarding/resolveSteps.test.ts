@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { TOUR_SCENARIO, autoStart, migrateOnboarding, resolveSteps, tourParam, tourScenario, type TourInput } from './steps'
 
-const SITES = [{ id: 'shackleton-rim', name: 'Shackleton Rim' }, { id: 'apollo-11', name: 'Apollo 11' }]
+const SITES = [{ id: 'shackleton-rim', name: 'Shackleton Rim' }, { id: 'apollo-15', name: 'Apollo 15' }]
 const base: TourInput = { selected: null, startUtc: '2026-12-13T00:00:00Z', sites: SITES, evaluated: false, offline: false,
   globe: true, terrain: true, viewMode: 'globe', detail: 'simple' }
 const ran: TourInput = { ...base, selected: { id: 'shackleton-rim', label: 'Shackleton Rim' }, evaluated: true }
@@ -11,8 +11,8 @@ describe('variantes de design.md §1.3', () => {
   test('completo: siete pasos en orden, con sus anclas', () => {
     expect(resolveSteps(ran).map((s) => s.anchor)).toEqual([null, 'setup', 'results', 'timeline', 'scene', 'detail', 'rail'])
   })
-  test('sin sitio: "Try Apollo 11"', () => {
-    expect(step(base, 'setup')!.action).toEqual({ id: 'try-scenario', label: 'Try Apollo 11' })
+  test('sin sitio: "Try Apollo 15"', () => {
+    expect(step(base, 'setup')!.action).toEqual({ id: 'try-scenario', label: 'Try Apollo 15' })
   })
   test('ya hay sitio: sin "Try" y el texto empieza con "You picked"', () => {
     const s = step({ ...base, selected: { id: 'shackleton-rim', label: 'Shackleton Rim' } }, 'setup')!
@@ -20,9 +20,9 @@ describe('variantes de design.md §1.3', () => {
     expect(s.text.startsWith('You picked Shackleton Rim.')).toBe(true)
   })
   test('con el escenario del tour cargado, su texto propio', () => {
-    const s = step({ ...base, selected: { id: 'apollo-11', label: 'Apollo 11' } }, 'setup')!
-    expect(s.text).toMatch(/^Apollo 11 on Dec 13, 2026.*Run the simulation/)
-    expect(step({ ...base, selected: { id: 'apollo-11', label: 'Apollo 11' }, evaluated: true }, 'setup')!.text).toMatch(/Press Next/)
+    const s = step({ ...base, selected: { id: 'apollo-15', label: 'Apollo 15' } }, 'setup')!
+    expect(s.text).toMatch(/^Apollo 15 on Dec 13, 2026.*Run the simulation/)
+    expect(step({ ...base, selected: { id: 'apollo-15', label: 'Apollo 15' }, evaluated: true }, 'setup')!.text).toMatch(/Press Next/)
   })
   test('hay evaluación: "Run again"', () => {
     expect(step(ran, 'setup')!.action!.label).toBe('Run again')
@@ -66,11 +66,11 @@ describe('variantes de design.md §1.3', () => {
 })
 
 describe('escenario del tour', () => {
-  test('Apollo 11 con la fecha y duración del tour', () => {
-    expect(tourScenario(SITES, '2030-01-01T00:00:00Z')).toEqual({ siteId: 'apollo-11', label: 'Apollo 11',
+  test('Apollo 15 con la fecha y duración del tour', () => {
+    expect(tourScenario(SITES, '2030-01-01T00:00:00Z')).toEqual({ siteId: 'apollo-15', label: 'Apollo 15',
       startUtc: TOUR_SCENARIO.startUtc, durationDays: TOUR_SCENARIO.durationDays })
   })
-  test('sin apollo-11 en /sites: el primer sitio con la fecha de Setup', () => {
+  test('sin apollo-15 en /sites: el primer sitio con la fecha de Setup', () => {
     const only = [{ id: 'shackleton-rim', name: 'Shackleton Rim' }]
     expect(tourScenario(only, '2030-01-01T00:00:00Z')).toEqual({ siteId: 'shackleton-rim', label: 'Shackleton Rim', startUtc: '2030-01-01T00:00:00Z' })
     expect(step({ ...base, sites: only }, 'setup')!.action!.label).toBe('Try Shackleton Rim')

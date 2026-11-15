@@ -33,7 +33,7 @@ Que cualquier persona entienda la consola y sus resultados sin ayuda externa. Es
 | --- | --- | --- |
 | D1 | Pasos del tour | Siete pasos (`design.md` §1.3). Se ajustan después de probarlo si hace falta |
 | D2 | El tour simula | Sí: el paso 2 corre una simulación real |
-| D3 | Escenario del tour | **Apollo 11, 2026-12-13 00:00 UTC**, 14 días (decidido el 2026-11-14). Shackleton Rim quedó descartado: da NO-GO por pendiente (16°, el límite es 15°) en cualquier fecha. Con el Backend oficial, Apollo 11 da GO del 9 al 21 de diciembre; el 13, con 88 % de Sol y 100 % de Tierra |
+| D3 | Escenario del tour | **Apollo 11, 2026-12-13 00:00 UTC**, 14 días (decidido el 2026-11-14). Shackleton Rim quedó descartado: da NO-GO por pendiente (16°, el límite es 15°) en cualquier fecha. Con el Backend oficial, Apollo 11 da GO del 9 al 21 de diciembre; el 13, con 88 % de Sol y 100 % de Tierra. **Cambiado el 2026-11-15 a Apollo 15** (pedido del usuario): misma fecha y duración, GO con 1,1° de pendiente, 71 % de Sol y 100 % de Tierra con el Backend oficial |
 | D4 | Demo y video | `?tour=0` basta |
 | D5 | "Compare dates" | +7 y +14 días |
 | D6 | Gravedad a igual nivel | Pendiente, después Sol, después Tierra |
