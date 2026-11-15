@@ -9,7 +9,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Rail (izquierda) | `layout/Rail.tsx` | Cambia de workspace (`setWorkspace`) con View Transition. No toca el fondo |
 | Contexto de la TopBar | `layout/TopBar.tsx` › `Context` | Nombre del workspace y del sitio elegido (salvo en History) |
 | Ícono de conexión | `layout/ConnectionStatus.tsx` | Aparece solo si no hay `health` y el error es `ERR_NETWORK`. Al pasar el puntero explica la caída, cuenta 20 s y reintenta `init()`. "Retry now" reintenta ya |
-| Simple / Detailed | `TopBar` › `DetailToggle` | `setDetail`. Cambia el contenido de Setup, Results y Timeline; no hace red. Oculto en History |
+| Simple / Detailed | `TopBar` › `DetailToggle` | `setDetail`. Cambia el contenido de Setup, Results y Compare; no hace red. El timeline no cambia: va siempre en Detailed. Oculto en History |
 | Origen de datos | `TopBar` › `DataSource` | "Connecting", "Live data", "Degraded" u "Offline". El `title` muestra la URL base |
 | Full screen / `F` | `TopBar` y `ConsoleShell` | `toggleFullscreen`. Oculta el rail, cambia la TopBar por una barra flotante (con Simple/Detailed, salvo en History, el origen de datos y Help) y pliega los paneles en tiras (ver [`01`](01-arquitectura.md)). `F` no actúa si el foco está en un campo ni con un `<dialog>` abierto (`hotkeyFor`, `help/shortcuts.ts`) |
 | Help / `?` | `help/HelpMenu.tsx` | Popover de 360 px con "Take the tour" (relanza el tour en el paso 2), el glosario por grupo (`glossaryGroups()`, el mismo texto de los "?", grupos plegables) y los atajos (`SHORTCUTS`). En la barra de pantalla completa el botón solo lleva el ícono y la tecla. `?` lo abre o lo cierra con la misma guarda que `F`; Esc y el clic fuera lo cierran (`popover="auto"`). No hace red |
@@ -67,13 +67,15 @@ Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CL
 
 ### Timeline (abajo)
 
-| Control | Simple | Detailed |
-| --- | --- | --- |
-| Play / Pause | Avanza 4 pasos cada 100 ms. Al final se detiene; si está al final, reinicia | Igual, con velocidad 1×, 4× o 12× |
-| Reloj | "Day N of M" y fecha UTC. El eje usa la misma regla (`dayOf`): la hora 72 es "Day 4" en los dos | "T+N h" y fecha UTC |
-| Pistas | Sunlight, Earth in view | Sunlight, Earth link, Sun + Earth (con %) y banderas de Sunset / Earthset |
-| Scrubber | Arrastre sobre las pistas (`role="slider"`). Teclado (`sliderStep`): ←/→ un paso, PageUp/PageDown un día, Home/End los extremos. `aria-valuetext` dice "Day N of M, fecha" | Igual; `aria-valuetext` dice "T+N h, fecha" |
-| Horizon 360° | — | Silueta de `horizon_profile` con el Sol y la Tierra del paso actual, y debajo el mismo scrubber sin las pistas |
+El timeline va **siempre en Detailed**, con Simple o con Detailed: es donde se elige la velocidad y la vista de abajo (decisión del usuario, 2026-11-15).
+
+| Control | Comportamiento |
+| --- | --- |
+| Play / Pause | Avanza 1, 4 (por defecto) o 12 pasos cada 100 ms ("Playback speed"). Al final se detiene; si está al final, reinicia |
+| Reloj | "T+N h" y fecha UTC |
+| Pistas | Sunlight, Earth link y Sun + Earth, cada una con su "?" y su %, y banderas de Sunset / Earthset |
+| Scrubber | Arrastre sobre las pistas (`role="slider"`). Teclado (`sliderStep`): ←/→ un paso, PageUp/PageDown un día, Home/End los extremos. `aria-valuetext` dice "T+N h, fecha" |
+| Vista de abajo ("Bottom view") | "Timeline" (las pistas) o "Horizon 360°": silueta de `horizon_profile` con el Sol y la Tierra del paso actual, y debajo el mismo scrubber sin las pistas |
 
 Cada cambio de paso actualiza Results, la luz de la escena local y el Sol y la Tierra del globo. Sin red.
 
@@ -91,9 +93,19 @@ Cada término y número tiene un "?" (`features/help/Help.tsx`, textos en `featu
 | "Compare scenarios" | `compare()` con 2 a 5 escenarios. Es la tecla luminosa mientras haya algo que comparar | `/compare` |
 | Next step | `nextStepCompare`: sin escenarios, "Add the current simulation"; con uno, "Add +7 days"; comparado, "Open in Simulate" con el primero del ranking, o "Add a scenario" si todos son NO-GO. En ese caso el rótulo "Recommended" pasa a "Least bad · still NO-GO" | Según la acción |
 | "Rank by" | Reordena la recomendación (Balanced, Sunlight, Earth link). Primero manda el estado del backend | No |
-| Matriz "Side by side" | 8 métricas por escenario; "Best" en la mejor si no hay empate. "First sunset" y "First Earthset" sin ocaso dicen "Never sets", "Never in view", "No sunlight" o "Rises later" (`setCell`), nunca "None" | — |
+| Matriz "Side by side" | Filas según Simple/Detailed (tabla abajo). "Best" en la mejor de las filas con barra, si no hay empate. Sin ocaso nunca dice "None" | — |
 
 Compare usa la duración y el panel de Setup, pero siempre `step_minutes = 120`.
+
+### Simple y Detailed en Compare
+
+Mismos datos de `/compare` en los dos modos; cambia cuánto se muestra y cómo se dice (C-06 del audit). Los términos siguen a Results: "Daylight" y "Talk to Earth" en Simple, "Sunlight" y "Earth link" en Detailed.
+
+| Parte | Simple | Detailed |
+| --- | --- | --- |
+| Matriz | 4 filas: Daylight y Talk to Earth (porcentaje entero, `pctWhole`), First sunset en días (`setCellPlain`: "In 3 days", "No sunset in this window", "Rises later") y Ground slope | 11 filas: Sunlight y Earth link (un decimal), Longest daylight y Longest link (h), First sunset y First Earthset (h, `setCell`), Peak power (W), Average factor (`avg_power_factor`), Ground slope, Elevation (m) y Nearest PSR (km, distancia al borde) |
+| Fila de escenario | Sitio, veredicto y fecha | Además la hora UTC y las coordenadas (`fmtCoord`) |
+| "Recommended" | Fecha, el veredicto con el título de Results ("A good place to land"…), Sol y Tierra en porcentaje entero y por qué gana según "Rank by" | Fecha, veredicto, porcentajes con un decimal, la regla del orden ("Ranked by verdict, then sunlight % + Earth link %.") y el puntaje del ganador (`score`) |
 
 ## History
 

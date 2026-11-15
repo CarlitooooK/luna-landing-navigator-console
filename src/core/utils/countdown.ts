@@ -54,3 +54,22 @@ export function setCell(s: Summary, b: Body): string {
     case 'until-rise': return `Rises in ${Math.round(c.hours)} h`
   }
 }
+
+/** Horas en lenguaje llano: menos de un día en horas, si no en días ("In 3 days"). */
+const inPlain = (h: number) => {
+  if (h < 23.5) return `${Math.max(1, Math.round(h))} h`
+  const d = Math.round(h / 24)
+  return `${d} day${d === 1 ? '' : 's'}`
+}
+
+/** La misma celda de `setCell` para Compare en Simple: días en vez de horas y frases completas. */
+export function setCellPlain(s: Summary, b: Body): string {
+  const c = countdownFromSummary(s, b)
+  switch (c.kind) {
+    case 'until-set': return `In ${inPlain(c.hours)}`
+    case 'never': return b === 'sun' ? 'No sunlight' : 'Never in view'
+    case 'always': return b === 'sun' ? 'No sunset in this window' : 'Stays in view'
+    case 'rises-later': return 'Rises later'
+    case 'until-rise': return `Rises in ${inPlain(c.hours)}`
+  }
+}
