@@ -83,9 +83,10 @@ Cada término y número tiene un "?" (`features/help/Help.tsx`, textos en `featu
 | Control | Acción | Red |
 | --- | --- | --- |
 | Site + Landing date (UTC) + "Add scenario" | Agrega un escenario a las 00:00 UTC. Máximo 5; rechaza sitio + fecha repetidos | No |
-| Ojo de un escenario | `showScenario()`: selecciona sitio y fecha y llama `evaluate()`. El fondo y el timeline pasan a ese escenario | `/evaluate`, `/terrain/patch`, `/psr/nearby` |
+| Ojo de un escenario | `showScenario()`: selecciona sitio y fecha y llama `evaluate()`. El fondo y el timeline pasan a ese escenario. La fila dice "Loading on the globe…" mientras carga y avisa si falla | `/evaluate`, `/terrain/patch`, `/psr/nearby` |
 | Papelera | Quita el escenario y borra la comparación | No |
-| "Compare scenarios" | `compare()` con 2 a 5 escenarios | `/compare` |
+| "Compare scenarios" | `compare()` con 2 a 5 escenarios. Es la tecla luminosa mientras haya algo que comparar | `/compare` |
+| Next step | `nextStepCompare`: sin escenarios, "Add the current simulation"; con uno, "Add +7 days"; comparado, "Open in Simulate" con el primero del ranking, o "Add a scenario" si todos son NO-GO. En ese caso el rótulo "Recommended" pasa a "Least bad · still NO-GO" | Según la acción |
 | "Rank by" | Reordena la recomendación (Balanced, Sunlight, Earth link). Primero manda el estado del backend | No |
 | Matriz "Side by side" | 8 métricas por escenario; "Best" en la mejor si no hay empate. "First sunset" y "First Earthset" sin ocaso dicen "Never sets", "Never in view", "No sunlight" o "Rises later" (`setCell`), nunca "None" | — |
 

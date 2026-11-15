@@ -3,6 +3,11 @@ import { Columns2, Eye, Plus, Trash2 } from 'lucide-react'
 import { MAX_SCENARIOS, useMissionStore, type Scenario } from '@/core/store/useMissionStore'
 import { bestIndex, rank } from '@/core/utils/compare'
 import { setCell } from '@/core/utils/countdown'
+import { atMidnight, shiftDays } from '@/core/utils/scenarios'
+import { NextStepBlock } from '@/features/suggest/NextStepBlock'
+import { nextStepCompare, type ActionId } from '@/features/suggest/nextStep'
+import { focusLater, useStepActions } from '@/features/suggest/useStepActions'
+import { withViewTransition } from '@/ui/motion'
 import { hoursShort, pct } from '@/core/utils/timeline'
 import { Button, Divider, Field, IconButton, Input, Panel, Segmented, Skeleton, StatusChip } from '@/ui'
 import type { CompareResponse } from '@/types'
@@ -25,6 +30,9 @@ function ScenarioRow({ s, i }: { s: Scenario; i: number }) {
   const shown = useMissionStore((st) => st.shownScenario === s.key)
   const showScenario = useMissionStore((st) => st.showScenario)
   const removeScenario = useMissionStore((st) => st.removeScenario)
+  // El ojo evalúa el escenario: se ve si está cargando o si falló (C-03).
+  const loading = useMissionStore((st) => shown && st.loading)
+  const failed = useMissionStore((st) => (shown && !st.loading ? st.error?.code : undefined))
   const result = useResult(i)
   return (
     <li className={`flex items-start gap-2.5 rounded-xl p-2.5 ring-1 ${shown ? 'raised ring-white/20' : 'ring-white/8'}`}>
@@ -32,6 +40,8 @@ function ScenarioRow({ s, i }: { s: Scenario; i: number }) {
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex items-center gap-1.5"><span className="truncate text-[13px] font-bold">{s.site.label}</span>{result && <StatusChip small status={result.site.status} />}</span>
         <span className="tnum text-xs text-ink-2">{shortDate(s.startUtc)} · {s.startUtc.slice(11, 16)} UTC</span>
+        {loading && <span role="status" className="text-xs text-ink-3">Loading on the globe…</span>}
+        {failed && <span role="alert" className="text-xs text-nogo">Could not load it ({failed}). Try the eye again.</span>}
       </div>
       <IconButton icon={Eye} label={`Show ${letter(i)} on the globe`} active={shown} onClick={() => void showScenario(s.key)} className="size-8" />
       <IconButton icon={Trash2} label={`Remove ${letter(i)}`} onClick={() => removeScenario(s.key)} className="size-8" />
@@ -72,25 +82,31 @@ function AddScenario() {
 }
 
 export function ScenariosPanel() {
-  const { scenarios, comparison, comparing, compareError, compare, rankBy: priority, setRankBy: setPriority } = useMissionStore()
+  const { scenarios, comparison, comparing, compareError, compare, rankBy: priority, setRankBy: setPriority, selected } = useMissionStore()
   const best = comparison ? rank(comparison.results, priority)[0] : undefined
   const bestI = best ? comparison!.results.indexOf(best) : -1
+  const leastBad = best?.site.status === 'NO-GO'
+  const step = nextStepCompare({ count: scenarios.length, hasSite: !!selected, comparing, error: compareError?.code ?? null,
+    best: best && scenarios[bestI] ? { letter: letter(bestI), site: scenarios[bestI].site.label, startUtc: scenarios[bestI].startUtc, status: best.site.status } : null })
+  const act = useCompareActions(bestI)
+  // Una sola tecla luminosa: "Compare scenarios" mientras haya algo que comparar; después, la acción de Next step.
+  const compareIsPrimary = scenarios.length >= 2 && !comparison && !compareError
   return (
     <Panel title={<span className="flex items-baseline gap-2"><h2 className="text-base font-bold">Scenarios</h2><Help id="scenario" className="self-center" />
       <span className="text-xs text-ink-3">{scenarios.length} of {MAX_SCENARIOS}</span></span>} label="Scenarios"
       peekAside={`${scenarios.length} of ${MAX_SCENARIOS}`}>
       {scenarios.length > 0 && <ol className="flex flex-col gap-2">{scenarios.map((s, i) => <ScenarioRow key={s.key} s={s} i={i} />)}</ol>}
       <AddScenario />
-      {scenarios.length < 2 && <p className="text-xs text-ink-3">Tip: add the same site twice with different dates to see the cost of a launch slip.</p>}
-      <Button variant="primary" icon={Columns2} disabled={scenarios.length < 2 || comparing} onClick={() => void compare()}>
+      {step && <NextStepBlock step={step} onAction={act} primary={!compareIsPrimary} announce={step.text} />}
+      <Button variant={compareIsPrimary || scenarios.length < 2 ? 'primary' : 'secondary'} icon={Columns2} disabled={scenarios.length < 2 || comparing} onClick={() => void compare()}>
         {comparing ? 'Comparing…' : 'Compare scenarios'}
       </Button>
-      {compareError && <p role="alert" className="text-xs text-nogo">Comparison failed ({compareError.code}). Try again.</p>}
       {best && (
         <>
           <Divider />
           <div className="flex flex-col gap-2">
-            <span className="text-xs font-medium text-ink-3">Recommended</span>
+            {/* Si el primero del ranking es NO-GO, no se recomienda: es el menos malo (C-02) */}
+            <span className={`text-xs font-medium ${leastBad ? 'text-nogo' : 'text-ink-3'}`}>{leastBad ? 'Least bad · still NO-GO' : 'Recommended'}</span>
             <span className="flex items-center gap-2.5"><Badge i={bestI} size={22} /><span className="text-base font-bold">{scenarios[bestI]?.site.label}</span></span>
             <span className="text-[13px] text-ink-2">{shortDate(scenarios[bestI]?.startUtc ?? '')} · {best.site.status} · sunlight {pct(best.summary.sun_visible_pct, 0)}, Earth {pct(best.summary.earth_visible_pct, 0)}.</span>
           </div>
@@ -162,4 +178,30 @@ export function CompareMatrix() {
       <p className="pt-3 text-[11px] text-ink-3">Click the eye on a scenario to see it on the globe with its full timeline.</p>
     </Panel>
   )
+}
+
+/** Acciones de Next step en Compare (§3.6): agregar la simulación actual o +7 días, abrir el mejor en Simulate. */
+function useCompareActions(bestI: number): (id: ActionId) => void {
+  const st = useMissionStore()
+  const common = useStepActions()
+  return (id) => {
+    const first = st.scenarios[0]
+    switch (id) {
+      case 'add-current':
+        if (st.selected) st.addScenario({ label: `${st.selected.label} (${st.startUtc.slice(0, 10)})`, site: st.selected, startUtc: atMidnight(st.startUtc) })
+        break
+      case 'add-plus-7': {
+        const d = first && shiftDays(first.startUtc, 7)
+        if (first && d) st.addScenario({ label: `${first.site.label} (${d.slice(0, 10)})`, site: first.site, startUtc: d })
+        break
+      }
+      case 'open-in-simulate': {
+        const sc = st.scenarios[bestI]
+        if (sc) { void st.showScenario(sc.key); withViewTransition(() => st.setWorkspace('simulate')) }
+        break
+      }
+      case 'focus-scenario-site': focusLater('select[aria-label="Scenario site"]'); break
+      default: common(id)
+    }
+  }
 }
