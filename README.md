@@ -2,6 +2,11 @@
   <img src="docs/media/demo.gif" alt="Balam console: pick a lunar site, run the simulation, drop to the horizon and scrub the Sun and Earth across the mission" width="100%">
 </p>
 
+<h3 align="center">
+  <a href="https://naples-perry-medicare-springs.trycloudflare.com/?tour=1">▶ Try the live demo</a>
+</h3>
+<p align="center">Opens the console with the guided tour, against the real simulation server. No install needed.</p>
+
 # Balam · Lunar Landing Navigator Console
 
 **Pick a place and a date on the Moon, and in a few seconds learn whether it is a good place to land, and why.**
@@ -214,7 +219,7 @@ The verdict and the timeline are identical in both.
 
 | Aid | What it is |
 | --- | --- |
-| **Guided tour** | 7 short steps: welcome → *Where, when, run* (it offers **Try Apollo 15** on Dec 13, 2026 and runs it for real) → the verdict → time as the main control → seeing the site from the ground → Simple vs Detailed → where to go next. It opens on the first visit only; skip it any time, replay it from Help, or force it with `?tour=1` |
+| **Guided tour** | 7 short steps: welcome → *Where, when, run* (it offers **Try Apollo 15** on Dec 13, 2026 and runs it for real) → the verdict → time as the main control → seeing the site from the ground → Simple vs Detailed → where to go next. It opens on the first visit only; skip it any time, replay it from Help, or force it with `?tour=1` (the [live demo](https://naples-perry-medicare-springs.trycloudflare.com/?tour=1) link does this) |
 | **"?" tips** | Next to almost every term and number: one sentence, sometimes with a value to try |
 | **Help** (button or **?**) | The full glossary by topic (Setup, Verdict, Sun and power, Earth link, Terrain, Time, Views, Compare), the keyboard shortcuts and *Take the tour* |
 | **Pill bubbles** | Hover a scene pill for a second to learn what it shows or hides |
