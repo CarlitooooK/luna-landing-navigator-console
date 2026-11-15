@@ -78,6 +78,14 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
 - **Pruebas:** `time.test.ts` usa `2026-12-01` como dato de entrada de las funciones de formato, no como valor por defecto, así que no cambia. Las 27 pruebas siguen pasando.
 - **Aviso al handoff:** `docs/07` del handoff conserva `2026-12-01` como ejemplo de prueba. No se edita, pero en el handoff de vuelta se avisa que la consola ya no arranca con esa fecha.
 
+### A9. `fix(setup)`: la hora de alunizaje en formato de 24 horas
+- **Spec:** A-16 en `audit.md`.
+- **Cambios:**
+  - "Landing time (UTC)" deja `<input type="time">`, que sigue el idioma del sistema, y pasa a un campo de texto `HH:MM` de 24 horas, con `inputmode="numeric"`, `font-mono` y validación al salir.
+  - Función pura `parseUtcTime(text)` en `src/core/utils/time.ts`: acepta `H:MM` y `HH:MM` de 00:00 a 23:59; el resto devuelve un error.
+- **Aceptación:** con el navegador en `en-US`, las 00:00 UTC se ven como "00:00". Un valor inválido muestra "Use 24-hour time, for example 05:00." y no cambia `startUtc`.
+- **Pruebas:** se amplía `time.test.ts`: límites, un dígito en la hora, espacios y valores fuera de rango.
+
 ## Bloque B: ayudas "?"
 
 ### B1. `refactor(ui)`: `Field` deja de envolver sus controles en un `<label>`
@@ -242,4 +250,5 @@ Quedan fuera porque no afectan al entendimiento de la consola o porque dependen 
 | F-02, F-03 (tiras plegadas, contraste) | Revisar con GPU real y medir contraste |
 | X-05 (crédito en español) | Repo del globo: se pide a su equipo |
 | X-07 (etiquetas del globo bajo los paneles) | Ajuste del vidrio o del globo: se revisa con GPU real |
+| S-05 ("Horizon view" sin guía) | Entra en parte con la ayuda `horizon-view` (B4) y el paso 5 del tour. Indicar hacia dónde está la Tierra fuera de cuadro le toca al globo |
 | X-06 (avisos del detector) | Se aceptan como están |

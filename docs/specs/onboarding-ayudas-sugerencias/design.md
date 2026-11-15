@@ -37,7 +37,7 @@ Siete pasos como máximo (seis sin globo). Cada uno apunta a un elemento real ma
 | 2 | `setup` | `SetupPanel` completo (`simulate/SetupPanel.tsx:168`) | Where, when, run | Search a landing site or click the globe. Set the landing date and how long the mission lasts. Then run the simulation: the server traces the horizon and follows the Sun and Earth for the whole stay. | "Try Apollo 11" si no hay sitio; después "Run simulation" |
 | 3 | `results` | `ResultsPanel` (`simulate/ResultsPanel.tsx:157`) | The verdict, and why | GO, CAUTION or NO-GO comes from the server, with the checks behind it. Below: how long the Sun stays up, how long you can talk to Earth and how steep the ground is. Every "?" explains a number. | — |
 | 4 | `timeline` | `TimelineDock` (`timeline/TimelineDock.tsx:81`) | Time is the main control | Drag the timeline or press play. The Sun and Earth move in the 3D view and the numbers follow. Bright bars are the hours with sunlight or with Earth in view. | "Play" (alterna `setPlaying`) |
-| 5 | `scene` | Fila de píldoras (`layout/ConsoleShell.tsx:60`) | See it on the ground | Landing scene plays an illustrative descent at this site. Terrain detail opens the local terrain from the server. | — |
+| 5 | `scene` | Fila de píldoras (`layout/ConsoleShell.tsx:60`) | See it on the ground | Horizon view puts you on the ground: watch the Sun and Earth rise and set behind the real skyline as you move the timeline. Landing scene plays an illustrative descent. Terrain detail opens the local terrain from the server. | "Horizon view" (pide `requestHorizon()`) |
 | 6 | `detail` | `DetailToggle` (`layout/TopBar.tsx:27`) | Two levels of detail | Simple speaks plain language. Detailed shows the full telemetry: angles, horizon and power. Same simulation, same verdict. | "Show Detailed" / "Show Simple" (alterna `setDetail`) |
 | 7 | `rail` | `Rail` (`layout/Rail.tsx:20`) | Where to go next | Compare ranks two to five site and date options. Missions replays real landings. History keeps the runs you save. Press F for full screen and ? for help at any time. | "Done" |
 
@@ -51,7 +51,7 @@ Variantes, decididas por una función pura `resolveSteps(state)`:
 | Hay evaluación | Paso 2: el botón dice "Run again". |
 | No hay evaluación al llegar al paso 3 o al 4 | Paso 3: "Your verdict will appear here after you run a simulation." Paso 4: tarjeta centrada sin foco de luz (el dock no existe sin evaluación, `TimelineDock.tsx:55`) y texto "The timeline appears below once a simulation has run." Sin botón "Play". |
 | Sin píldoras en el DOM (sin evaluación, o sin globo y sin `terrain`) | El paso 5 se omite y el contador dice "of 6". |
-| Sin globo (`VITE_GLOBE_URL` vacío o `link = 'unavailable'`) | Paso 5: solo la frase de "Terrain detail" (o "Global view" si la escena local ya es el fondo). Paso 4: "in the 3D view" se mantiene, vale para ambos renders. |
+| Sin globo (`VITE_GLOBE_URL` vacío o `link = 'unavailable'`) | Paso 5: solo la frase de "Terrain detail" (o "Global view" si la escena local ya es el fondo), sin "Horizon view" ni "Landing scene", que corren en el globo. Paso 4: "in the 3D view" se mantiene, vale para ambos renders. |
 | Sin backend (`health = null` y `ERR_NETWORK`) | Paso 2: sin botones de acción y con la nota "The simulation server is unreachable, so this tour only describes the screen. It retries on its own." Los pasos 3 y 4 usan la variante sin evaluación. |
 | Ancla ausente por cualquier otra causa | Tarjeta centrada sin foco de luz. El tour nunca se rompe por un elemento que falta. |
 
@@ -151,8 +151,9 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 | `longest` | "Longest stretch" (`:114`), "Longest daylight", "Longest link" | The longest uninterrupted period in view during the window. | `max_continuous_*_hours` |
 | `both` | Pista "Both" (`TimelineDock.tsx:71`), que pasa a llamarse **"Sun + Earth"** | Hours with sunlight and Earth in view at the same time: power and a direct radio link together. | `sun_visible && earth_visible` |
 | `horizon-360` | Pestaña "Horizon 360°" (`TimelineDock.tsx:97`) | The skyline seen from the site, unrolled from north through east, south and west. The dots are the Sun and Earth right now; a dot under the line is hidden. | `horizon_profile` |
-| `landing-scene` | Píldora "Landing scene" (`SceneControls.tsx:62`) | An illustrative descent at this site. The path and the numbers on screen are not a physical simulation. | D-015; rótulo "Illustrative" |
-| `terrain-detail` | Píldora "Terrain detail" (`:67`) | The local terrain patch served by the server, lit by the Sun at the selected time. | `GET /terrain/patch`. Con v1.2 o superior añade "Source: {grid.source}, {native_resolution_m} m per pixel." |
+| `horizon-view` | Píldora "Horizon view" (`SceneControls.tsx:71`) | Stand at the landing spot and look around. The skyline is the real terrain horizon from the server; the Sun and Earth follow the timeline and hide behind it. | `horizon_profile`, `SET_SKY_STATE` (`docs/11` §11 del handoff). El brillo del suelo es ilustrativo |
+| `landing-scene` | Píldora "Landing scene" (`SceneControls.tsx:82`) | An illustrative descent at this site. The path and the numbers on screen are not a physical simulation. | D-015; rótulo "Illustrative" |
+| `terrain-detail` | Píldora "Terrain detail" (`:87`) | The local terrain patch served by the server, lit by the Sun at the selected time. | `GET /terrain/patch`. Con v1.2 o superior añade "Source: {grid.source}, {native_resolution_m} m per pixel." |
 
 ### 2.5 Catálogo: barra superior y Compare
 
@@ -300,7 +301,7 @@ El paso 2 del tour depende de esto: sin la corrección, quien navega con teclado
 | A-04 | `index.html:2` con `lang="es"` | `lang="en"`. Las razones en español conservan su `lang="es"` (sección 2.7) |
 | A-14 | "POST /evaluate · 2.52 s · 336 steps" (`SetupPanel.tsx:153`) | Simple: "Last run took 2.5 s". Detailed: "Computed in 2.5 s · 336 samples" |
 | A-14 | "From POST /compare" (`ComparePanels.tsx:126`) | "Computed by the simulation server" |
-| A-14 | `aria-label` "Open the local terrain from the API" (`SceneControls.tsx:66`) | "Open the local terrain around this site" |
+| A-14 | `aria-label` "Open the local terrain from the API" (`SceneControls.tsx:87`) | "Open the local terrain around this site" |
 | A-04 | "3 checks from the backend" (`ResultsPanel.tsx:94`) | Lo define la sección 2.7 |
 | X-03 | "tilt", "Local slope", "Ground slope" | "Ground slope" en todos los workspaces |
 | X-03 | "Nearest shadow zone", "Permanent shadow", "Terrain & ice" | "Permanent shadow" como término; el título de la sección de Detailed pasa a "Terrain" |

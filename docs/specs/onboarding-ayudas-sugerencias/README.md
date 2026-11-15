@@ -75,6 +75,7 @@ Se propuso y se retiró el mismo día. El recorrido usó un proceso del mock que
 
 ## Anotado fuera de esta spec
 
+- **"Horizon view" ya existe** (consola PR `#9`): cámara a ras de suelo con el horizonte real y el Sol y la Tierra del timeline. Se probó el 2026-11-14 (S-05 en `audit.md`): coincide con los datos, pero muestra la luz y el horizonte, no las pendientes del lugar. **Pendiente de decisión del usuario:** si con "Horizon view" basta o si "Terrain detail" sigue siendo una vista aparte para el terreno cercano.
 - **"Terrain detail" debe usar la vista a ras de suelo del globo** (decisión del usuario, 2026-11-14). La escena local de Three.js no sirve para juzgar el terreno; la de alunizaje del globo, sí. Es un cambio de render que toca la consola, el globo y el backend (teselas de 40 m), así que no entra en esta spec. Está anotado en `docs/06-limitaciones-y-pendientes.md`, tabla "Render y calidad visual". Mientras no se haga, la ayuda `terrain-detail` (`design.md` §2.4) describe la escena que exista en ese momento.
 
 ## Verificación hecha y no hecha

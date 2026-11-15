@@ -11,7 +11,7 @@ Recorrido de la consola el 2026-11-14, rama `feat/simulacion-en-globo` (`29ba38b
   - **Offline:** se probó contra un puerto sin servidor.
 - **Consultas directas** a `/sites` y `/evaluate` del Backend oficial con `curl`, para los 13 sitios en la fecha por defecto y para cuatro sitios en fechas de diciembre (ver D3 y D11 en `README.md`).
 - **Detector de impeccable** (`impeccable detect --json src`).
-- **Evidencia:** las capturas están en [`evidencia/`](evidencia/) y se citan como `eNN`.
+- **Evidencia:** las capturas están en [`evidencia/`](evidencia/) y se citan como `eNN`. Las de "Horizon view" (consola PR `#9`) se tomaron el 2026-11-14 sobre `main` en `52ab449`, contra el Backend oficial y el globo `a891c85`, y se citan como `hNN`.
 - **Límites.** No hubo GPU real, VoiceOver ni pruebas con usuarios. Lo que solo se dedujo del código se marca **[código]**.
 
 ### Escalas
@@ -69,6 +69,7 @@ Recorrido de la consola el 2026-11-14, rama `feat/simulacion-en-globo` (`29ba38b
 | A-13 | P2 | UX | **`Field` es un `<label>` que envuelve un `Segmented`.** Un clic en el texto "Mission length" activa "7 days". Esto también impide poner un "?" junto a la etiqueta **[código]** | `ui/index.tsx:79`; `simulate/SetupPanel.tsx:99-106` |
 | A-14 | P2 | COM | **Hay jerga de desarrollo en pantalla:** "POST /evaluate · 2.52 s · 336 steps", "From POST /compare", "Open the local terrain from the API" | e03, e08; `simulate/SetupPanel.tsx:153`; `comparator/ComparePanels.tsx:126`; `simulate/SceneControls.tsx:66` |
 | A-15 | P2 | UX | **"Solar power now" cambia con el timeline y "Daylight" no.** Nada distingue lo que depende del instante de lo que resume la ventana | e02; `simulate/ResultsPanel.tsx:70-77` |
+| A-16 | P1 | UX, SCI | **El campo de hora usa el formato de 12 horas del sistema y se corta el AM/PM.** `<input type="time">` sigue el idioma del navegador: con `en-US`, las 00:00 UTC se ven como "12:00", y el panel no muestra el "AM". La hora de alunizaje parece mediodía mientras el timeline dice "00:00 UTC". Se vio en todas las capturas (2026-12-17 00:00 UTC aparece como "12:00") | h03 a h06; `simulate/SetupPanel.tsx:97` |
 
 ### Timeline
 
@@ -86,6 +87,7 @@ Recorrido de la consola el 2026-11-14, rama `feat/simulacion-en-globo` (`29ba38b
 | S-01 | P2 | COM, ART | **La escena empieza sin explicar qué es ni qué se mira.** La píldora muestra "Illustrative descent · 440 m · 73.4 m/s" sin decir qué número es altura y cuál velocidad. Results sigue mostrando el veredicto, sin relación visible con la escena. Con render por software casi no se ve el módulo (hay que probarlo en GPU real) | e11; `simulate/SceneControls.tsx:10`, `:37-45` |
 | S-02 | P2 | UX | **Las píldoras de estado son `<button>` sin acción.** La píldora de fase y telemetría es enfocable y no hace nada | `simulate/SceneControls.tsx:37`, `:57`, `:70`; `ui/index.tsx:171` |
 | S-03 | P2 | DATA, COM | **"Terrain detail" no dice de dónde sale el terreno ni su resolución.** Es un parche gris de 12 km sin escala. La franja de créditos dice "Ephemeris: NASA/JPL Horizons", que no es cierto (ya anotado en `docs/06`) | e12; `layout/ConsoleShell.tsx:34` |
+| S-05 | P2 | COM | **"Horizon view" funciona y coincide con los datos, pero no se explica.** Probado con el Backend oficial en IM-2 Mons Mouton el 2026-12-17: a las 00:00 el Sol está "behind the terrain" con 0 % de potencia, y a las 05:00 sale justo sobre la cresta ("+0.0° above the terrain", holgura +0.01°), igual que en la tabla de Detailed. Lo que falta: la píldora "Drag to look around · scrub the timeline" es la única guía; la Tierra (azimut 321°) queda fuera de cuadro sin aviso de hacia dónde girar; y el suelo es una banda lisa, sin relieve cercano. Sirve para ver la luz y el horizonte, **no las pendientes del lugar** | h03, h05, h06 |
 | S-04 | P3 | — | **El abanico de imagen alrededor del polo** se ve al volar a un sitio polar en pantalla completa. Es un pendiente del globo (`docs/06`, `P-008`); solo se menciona porque confunde en la demo | e13 |
 
 ### Pantalla completa
