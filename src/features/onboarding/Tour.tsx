@@ -14,6 +14,7 @@ import { prefersReducedMotion } from '@/ui/motion'
 import { place, type Box } from '@/ui/place'
 import { restoreFocus, startTour } from './startTour'
 import { autoStart, resolveSteps, tourParam, tourScenario, type TourActionId, type TourInput } from './steps'
+import { runSimulation } from '@/features/simulate/runSimulation'
 
 /** Los paneles entran con `condense` en unos 700 ms; antes de eso las anclas todavía se mueven. */
 const PANELS_SETTLE_MS = 700
@@ -25,7 +26,9 @@ const FRAME_MS = 560
 function useTourInput(): TourInput {
   const m = useMissionStore()
   const link = useGlobeStore((s) => s.link)
+  const horizon = useGlobeStore((s) => s.horizon.requested)
   return {
+    horizon,
     selected: m.selected?.id ? { id: m.selected.id, label: m.selected.label } : m.selected ? { id: '', label: m.selected.label } : null,
     startUtc: m.startUtc, sites: m.sites, evaluated: !!m.evaluation, terrain: !!m.terrain, viewMode: m.viewMode, detail: m.detail,
     offline: !m.health && m.error?.code === 'ERR_NETWORK',
@@ -142,7 +145,7 @@ function TourDialog({ index }: { index: number }) {
         m.setConfig({ startUtc: sc.startUtc, ...(sc.durationDays ? { durationDays: sc.durationDays } : {}) })
         return
       }
-      case 'run': void m.evaluate(); return
+      case 'run': void runSimulation(); return
       case 'play':
         if (!m.playing && m.evaluation && m.stepIndex >= m.evaluation.timeline.length - 1) m.setStep(0)
         m.setPlaying(!m.playing); return

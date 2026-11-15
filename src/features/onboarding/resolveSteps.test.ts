@@ -53,6 +53,12 @@ describe('variantes de design.md §1.3', () => {
     expect(step(off, 'results')!.text).toMatch(/after you run/)
     expect(step(off, 'timeline')!.anchor).toBeNull()
   })
+  test('con Horizon view ya abierta, el paso de escena la describe y no ofrece el botón', () => {
+    const s = step({ ...ran, horizon: true }, 'scene')!
+    expect(s.action).toBeUndefined()
+    expect(s.text).toMatch(/^You are on the ground now/)
+    expect(resolveSteps({ ...ran, horizon: true })).toHaveLength(7)
+  })
   test('el botón de detalle dice el modo al que lleva', () => {
     expect(step(ran, 'detail')!.action!.label).toBe('Show Detailed')
     expect(step({ ...ran, detail: 'detailed' }, 'detail')!.action!.label).toBe('Show Simple')

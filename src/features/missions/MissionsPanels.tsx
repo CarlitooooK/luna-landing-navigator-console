@@ -11,6 +11,7 @@ import { VerdictList } from '@/features/simulate/VerdictList'
 import { NextStepBlock } from '@/features/suggest/NextStepBlock'
 import { nextStepMissions } from '@/features/suggest/nextStep'
 import { MISSIONS, REGION_LABEL, missionDisagrees, replayStart, type Mission, type MissionRegion } from './missions'
+import { runSimulation } from '@/features/simulate/runSimulation'
 
 const REGION_COLOR: Record<MissionRegion, string> = { 'south-pole': 'var(--color-psr)', 'far-side': 'var(--color-sun)', 'near-side': 'var(--color-earth)' }
 
@@ -71,14 +72,14 @@ function Condition({ icon, signal, label, value, note }: { icon: typeof Sun; sig
 export function MissionBrief() {
   const id = useMissionStore((s) => s.pickedMission)
   const m = MISSIONS.find((x) => x.id === id) ?? MISSIONS[0]
-  const { select, setConfig, evaluate, setWorkspace, selected, evaluation, loading, error } = useMissionStore()
+  const { select, setConfig, setWorkspace, selected, evaluation, loading, error } = useMissionStore()
   const loaded = selected?.id === `mission:${m.id}` && evaluation
   const t0 = loaded ? evaluation.timeline[0] : undefined
   const step = nextStepMissions({ picked: true, replayed: !!loaded && !loading })
   const load = async () => {
     select({ id: `mission:${m.id}`, lat: m.lat, lon: m.lon, label: m.name, category: m.operator })
     setConfig({ startUtc: replayStart(m.touchdownUtc), durationDays: 14 })
-    await evaluate()
+    await runSimulation()
   }
   return (
     <Panel label="Mission brief" peek={m.name} peekAside={<span className="tnum font-mono">{m.touchdownUtc.slice(0, 10)}</span>}>
