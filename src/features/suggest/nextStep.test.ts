@@ -17,7 +17,7 @@ describe('Simulate (§3.2)', () => {
   test('desactualizado pide correr otra vez', () => expect(sim({ stale: true, ...v('GO', null) })?.action?.id).toBe('run-again'))
   test('GO: comparar fechas y guardar', () => {
     const s = sim(v('GO', []))!
-    expect([s.id, s.tone, s.action?.id, s.secondary?.id]).toEqual(['go', 'go', 'compare-dates', 'save'])
+    expect([s.id, s.tone, s.action?.id, s.secondary?.id]).toEqual(['go', 'go', 'compare-dates', 'star'])
   })
   test('CAUTION y NO-GO sin checks (v1.1)', () => {
     expect(sim(v('CAUTION', null))?.id).toBe('caution')

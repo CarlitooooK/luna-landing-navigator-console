@@ -1,7 +1,7 @@
 // Qué hace cada `ActionId` de nextStep (tareas C2–C5). Las acciones llaman a las mismas funciones del store
 // que los controles de la pantalla; las que llevan a un control, le dan el foco.
 import { useMissionStore } from '@/core/store/useMissionStore'
-import { useSaveRun } from '@/features/simulate/useSaveRun'
+import { useStarRun } from '@/features/simulate/useStarRun'
 import { withViewTransition } from '@/ui/motion'
 import type { ActionId } from './nextStep'
 import { runSimulation } from '@/features/simulate/runSimulation'
@@ -25,7 +25,7 @@ const SITE_PICKER = ['[aria-label="Search landing sites"]', 'select[aria-label="
 
 export function useStepActions(): (id: ActionId) => void {
   const st = useMissionStore()
-  const { save } = useSaveRun()
+  const { star } = useStarRun()
   return (id) => {
     switch (id) {
       case 'retry-init': void st.init(); break
@@ -36,7 +36,7 @@ export function useStepActions(): (id: ActionId) => void {
       case 'run-again': case 'try-again': void runSimulation(); break
       case 'compare-dates': withViewTransition(() => { void st.compareDates() }); break
       case 'compare-sites': withViewTransition(() => st.compareSites()); focusLater('select[aria-label="Scenario site"]'); break
-      case 'save': save(); break
+      case 'star': star(); break
       case 'shorten-mission': focusLater('[role="radiogroup"][aria-label="Mission length"] [aria-checked="true"]'); break
       case 'change-date': focusLater('input[type="date"]'); break
       case 'fix-coordinates': st.setDetail('detailed'); focusLater('input[aria-describedby][inputmode="decimal"]', '[role="radio"][aria-checked="true"]'); break

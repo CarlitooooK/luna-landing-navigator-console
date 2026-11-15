@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FocusEvent, type KeyboardEvent } from 'react'
-import { Bookmark, BookmarkCheck, ChevronRight, MapPin, Play, Search, Zap } from 'lucide-react'
+import { ChevronRight, MapPin, Play, Search, Star, Zap } from 'lucide-react'
 import { STEP_OPTIONS, useMissionStore } from '@/core/store/useMissionStore'
 import { toSelected } from '@/core/utils/sites'
 import { parseUtcTime, toUtcIso } from '@/core/utils/time'
@@ -7,7 +7,7 @@ import { fmtCoord } from '@/core/utils/coordinates'
 import { Button, Divider, Field, IconButton, IconWell, Input, Panel, SectionTitle, Segmented } from '@/ui'
 import type { Site } from '@/types'
 import { isComboboxKey, moveActive, type ComboboxKey } from './combobox'
-import { useSaveRun } from './useSaveRun'
+import { useStarRun } from './useStarRun'
 import { useSimulateStep } from '@/features/suggest/useSimulateStep'
 import { Help } from '@/features/help/Help'
 import { runSimulation } from './runSimulation'
@@ -183,7 +183,7 @@ function SolarPanels({ detailed }: { detailed: boolean }) {
 
 function RunBar({ detailed }: { detailed: boolean }) {
   const { selected, loading, lastRunMs, evaluation } = useMissionStore()
-  const { canSave, stale, saved, save: onSave, message } = useSaveRun()
+  const { canStar, starred, stale, star } = useStarRun()
   // Una sola tecla luminosa (design.md §3.1): con resultados vigentes y una próxima acción, Run simulation baja a secundario.
   const { primaryIsStep } = useSimulateStep()
   const n = evaluation?.timeline.length
@@ -193,12 +193,10 @@ function RunBar({ detailed }: { detailed: boolean }) {
         <Button variant={primaryIsStep ? 'secondary' : 'primary'} icon={Play} iconFill className={loading ? 'flex-1 shimmer' : 'flex-1'} disabled={!selected || loading} onClick={() => void runSimulation()}>
           {loading ? 'Calculating…' : 'Run simulation'}
         </Button>
-        <IconButton icon={saved === 'saved' ? BookmarkCheck : Bookmark} label={stale ? 'Run the simulation again to save it' : 'Save to history'} disabled={!canSave}
-          className="raised size-11 text-ink disabled:opacity-40" onClick={onSave} />
+        {/* Cada corrida ya queda en History; este botón le pone o quita la estrella */}
+        <IconButton icon={Star} label={stale ? 'Run the simulation again to star it' : starred ? 'Unstar this run' : 'Star this run'} disabled={!canStar}
+          aria-pressed={starred} className={`raised size-11 disabled:opacity-40 ${starred ? 'text-sun [&_svg]:fill-current' : 'text-ink'}`} onClick={star} />
       </div>
-      <p role="status" aria-live="polite" className="min-h-0 text-xs text-ink-2 empty:hidden">
-        {message}
-      </p>
       {lastRunMs != null && n != null && (
         <p className={detailed ? 'tnum font-mono text-[11px] text-ink-3' : 'text-xs text-ink-3'}>
           {detailed ? `Computed in ${(lastRunMs / 1000).toFixed(2)} s · ${n} samples` : `Last run took ${lastRunMs < 100 ? 'under 0.1' : (lastRunMs / 1000).toFixed(1)} s`}

@@ -89,7 +89,7 @@ Lo escribe **solo** el puente (`useGlobeBridge`) y los botones de escena (`Scene
 
 ### `useHistoryStore` (historial, persistente)
 
-`zustand/persist` en `localStorage`, clave `lunar-navigator.history`, versión 1, límite 100 corridas. Guarda parámetros y `summary`, no el `timeline` (unos 180 KB por corrida): reabrir una corrida vuelve a evaluar.
+`zustand/persist` en `localStorage`, clave `lunar-navigator.history`, versión 2 (la v1 solo tenía `runs`; `migrateHistory` agrega `comparisons` vacío y conserva las corridas). Dos listas: `runs` (límite 100) y `comparisons` (límite 50). Guarda parámetros y resúmenes, no el `timeline` (unos 180 KB por corrida): reabrir una corrida vuelve a evaluar y reabrir una comparación vuelve a comparar. Las escrituras son automáticas: `runSimulation()` llama a `save()` al responder (salvo con `history: false`, el tour) y `compare()` llama a `saveComparison()`. Ambas suben la entrada si ya existe una igual.
 
 ### `useOnboardingStore` (tour, persistente)
 
