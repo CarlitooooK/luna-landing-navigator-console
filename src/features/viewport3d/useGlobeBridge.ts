@@ -1,5 +1,6 @@
 import { useEffect, type RefObject } from 'react'
 import { GLOBE_URL } from '@/core/config'
+import { API_BASE } from '@/core/api/client'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { useGlobeStore } from '@/core/store/useGlobeStore'
 import { READY_TIMEOUT_MS, comparePins, customPinMessage, fromGlobe, globalPsrItems, horizonMessage, landingMessage, psrItems, samePlace, skyGlobalMessage, skyMessages, skyStateMessage, toGlobeSites } from './globeBridge'
@@ -78,6 +79,7 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
       if (s) post({ type: 'SELECT_SITE', payload: { id: s.id, lat: s.lat, lon: s.lon, label: s.label } })
     }
     const pushAll = () => {
+      post({ type: 'SET_TERRAIN_SOURCE', payload: { baseUrl: API_BASE } })
       sendMode()
       sendSites()
       sendSky()
