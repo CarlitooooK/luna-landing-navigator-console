@@ -4,6 +4,7 @@ import { useMissionStore } from '@/core/store/useMissionStore'
 import { useGlobeStore } from '@/core/store/useGlobeStore'
 import type { HorizonPhase, ScenePhase } from '@/features/viewport3d/globeProtocol'
 import { Pill } from '@/ui'
+import { tipOf } from '@/features/help/glossary'
 import { useSiteViewStore } from '@/features/viewport3d/useSiteViewStore'
 import { SLOPE_HIGH, SLOPE_LOW, terrainLegend } from '@/features/viewport3d/terrainLook'
 
@@ -32,10 +33,10 @@ function SiteControls() {
   const sunHidden = useMissionStore((s) => { const t = s.evaluation?.timeline[s.stepIndex]; return !!t && !t.sun_visible })
   return (
     <>
-      <Pill onClick={backToGlobe} aria-label="Back to the globe">
+      <Pill onClick={backToGlobe} aria-label="Back to the globe" tip={tipOf('close-terrain', GLOBE_URL ? 'Back to globe' : 'Global view')}>
         <Globe2 size={14} aria-hidden />{GLOBE_URL ? 'Back to globe' : 'Global view'}
       </Pill>
-      <Pill onClick={cycle} aria-label={`Vertical exaggeration ×${exaggeration}. Press to change`}>
+      <Pill onClick={cycle} aria-label={`Vertical exaggeration ×${exaggeration}. Press to change`} tip={tipOf('vertical')}>
         <Mountain size={14} aria-hidden />Vertical ×{exaggeration}
       </Pill>
       {sunHidden && (
@@ -64,15 +65,15 @@ function MapControls({ orbit }: { orbit: boolean }) {
   const toggle = useGlobeStore((s) => s.toggleLayer)
   return (
     <>
-      <Pill onClick={recenter} aria-label="Recenter: back to the whole Moon, keeping the selected site">
+      <Pill onClick={recenter} aria-label="Recenter: back to the whole Moon, keeping the selected site" tip={tipOf('recenter')}>
         <LocateFixed size={14} aria-hidden />Recenter
       </Pill>
       {orbit && <>
-        <Pill onClick={() => toggle('grid')} aria-pressed={layers.grid}
+        <Pill onClick={() => toggle('grid')} aria-pressed={layers.grid} tip={tipOf('map-grid')}
           aria-label={`Latitude and longitude grid: ${layers.grid ? 'on' : 'off'}`}>
           <Grid3x3 size={14} aria-hidden />Grid {layers.grid ? 'on' : 'off'}
         </Pill>
-        <Pill onClick={() => toggle('elevation')} aria-pressed={layers.elevation}
+        <Pill onClick={() => toggle('elevation')} aria-pressed={layers.elevation} tip={tipOf('map-elevation')}
           aria-label={`Elevation colour map: ${layers.elevation ? 'on' : 'off'}`}>
           <Layers size={14} aria-hidden />Elevation {layers.elevation ? 'on' : 'off'}
         </Pill>
@@ -115,7 +116,7 @@ export function SceneControls() {
           {/* La curva de descenso no es física: lo dice el rótulo de la fase */}
           {telemetry && <span className="tnum font-mono">· altitude {Math.round(landing.altM!)} m · speed {Math.round(landing.vMps!)} m/s</span>}
         </Pill>
-        <Pill onClick={clearLanding} aria-label="Exit the landing scene"><LogOut size={14} aria-hidden />Exit scene</Pill>
+        <Pill onClick={clearLanding} aria-label="Exit the landing scene" tip={tipOf('exit-scene')}><LogOut size={14} aria-hidden />Exit scene</Pill>
       </>
     )
   }
@@ -124,7 +125,7 @@ export function SceneControls() {
   if (viewMode === 'site') return <SiteControls />
 
   const psrPill = globeReady && (
-    <Pill onClick={togglePsr} aria-pressed={showPsr} aria-label={`Permanently shadowed regions: ${showPsr ? 'shown' : 'hidden'}`}>
+    <Pill onClick={togglePsr} aria-pressed={showPsr} aria-label={`Permanently shadowed regions: ${showPsr ? 'shown' : 'hidden'}`} tip={tipOf('psr-layer')}>
       <Moon size={14} aria-hidden />Shadowed regions {showPsr ? 'on' : 'off'}
     </Pill>
   )
@@ -140,29 +141,29 @@ export function SceneControls() {
       {globeReady && <MapControls orbit={!horizon.requested} />}
       {/* Vista de horizonte: el Sol y la Tierra del timeline contra la silueta real del terreno (docs/05 §5.2) */}
       {globeReady && !horizon.requested && (
-        <Pill onClick={requestHorizon} aria-label="See the Sun and Earth over the local horizon">
+        <Pill onClick={requestHorizon} aria-label="See the Sun and Earth over the local horizon" tip={tipOf('horizon-view')}>
           <Sunrise size={14} aria-hidden />Horizon view
         </Pill>
       )}
       {globeReady && horizon.requested && (
         <>
           <Pill aria-live="polite" className="pointer-events-none"><Sunrise size={14} aria-hidden />{HORIZON_TEXT[horizon.phase ?? 'arrival']}</Pill>
-          <Pill onClick={clearHorizon} aria-label="Back to the globe"><Globe2 size={14} aria-hidden />Back to globe</Pill>
+          <Pill onClick={clearHorizon} aria-label="Back to the globe" tip={tipOf('back-to-globe')}><Globe2 size={14} aria-hidden />Back to globe</Pill>
         </>
       )}
       {globeReady && (
-        <Pill onClick={requestLanding} aria-label="Watch an illustrative landing at this site">
+        <Pill onClick={requestLanding} aria-label="Watch an illustrative landing at this site" tip={tipOf('landing-scene')}>
           <Clapperboard size={14} aria-hidden />Landing scene
         </Pill>
       )}
       {psrPill}
       {globeReady && (
-        <Pill onClick={() => setAstronaut(!astronaut)} aria-pressed={astronaut} aria-label={`Astronaut in the landing scene: ${astronaut ? 'on' : 'off'}`}>
+        <Pill onClick={() => setAstronaut(!astronaut)} aria-pressed={astronaut} tip={tipOf('astronaut')} aria-label={`Astronaut in the landing scene: ${astronaut ? 'on' : 'off'}`}>
           <User size={14} aria-hidden />Astronaut {astronaut ? 'on' : 'off'}
         </Pill>
       )}
       {hasTerrain && (
-        <Pill onClick={showSite} aria-label="Open the local terrain around this site">
+        <Pill onClick={showSite} aria-label="Open the local terrain around this site" tip={tipOf('terrain-detail')}>
           <Mountain size={14} aria-hidden />Terrain detail
         </Pill>
       )}
