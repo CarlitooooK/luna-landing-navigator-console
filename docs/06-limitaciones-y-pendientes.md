@@ -54,7 +54,7 @@ La spec `docs/specs/onboarding-ayudas-sugerencias/` (tour, ayudas "?", Next step
 | Banderas Sunset / Earthset encimadas (T-04) | Presentación del timeline | Consola |
 | Visibilidad de la escena y abanico polar (S-01, S-04) | Render; ver la tabla "Render y calidad visual" y `P-008`. S-03 (terreno sin fuente) quedó resuelto con el rediseño de "Terrain detail" (#13): su leyenda muestra `grid.source`, la resolución nativa y el tamaño del parche, que es lo que pedía la ayuda `terrain-detail` de `design.md` §2.4 | Globo + backend |
 | Píldoras sin acción y `Segmented` sin flechas (S-02, X-04) | Accesibilidad de primitivas: tarea propia | Consola |
-| Matriz de Compare (C-04, C-05, C-06) | Presentación de Compare; la ayuda `rank-by` ya explica el orden | Consola |
+| Matriz de Compare (C-04, C-05; C-06 resuelto: Simple y Detailed ya difieren, ver `05`) | Presentación de Compare; la ayuda `rank-by` ya explica el orden | Consola |
 | Borrado sin deshacer, acciones parecidas y estrella pequeña en History (H-02, H-03, H-04) | Fuera del flujo principal de la demo | Consola |
 | Sobrescritura, siglas y desbordes de fuentes en Missions (M-03, M-04, M-05) | Pulido de Missions | Consola |
 | Tiras plegadas y contraste en pantalla completa (F-02, F-03) | Hay que revisarlo con GPU real y medir contraste | Consola |

@@ -7,15 +7,17 @@ type Result = CompareResponse['results'][number]
 
 const STATUS_RANK: Record<string, number> = { GO: 0, CAUTION: 1, 'NO-GO': 2 }
 
+/** Puntaje dentro del mismo veredicto: lo que ordena "Rank by". Detailed lo muestra junto a "Recommended". */
+export function score(r: Result, priority: Priority): number {
+  const s = r.summary
+  if (priority === 'power') return s.sun_visible_pct
+  if (priority === 'earth') return s.earth_visible_pct
+  return s.sun_visible_pct + s.earth_visible_pct
+}
+
 export function rank(results: Result[], priority: Priority): Result[] {
-  const score = (r: Result) => {
-    const s = r.summary
-    if (priority === 'power') return s.sun_visible_pct
-    if (priority === 'earth') return s.earth_visible_pct
-    return s.sun_visible_pct + s.earth_visible_pct
-  }
   return [...results].sort((a, b) =>
-    (STATUS_RANK[a.site.status] ?? 3) - (STATUS_RANK[b.site.status] ?? 3) || score(b) - score(a))
+    (STATUS_RANK[a.site.status] ?? 3) - (STATUS_RANK[b.site.status] ?? 3) || score(b, priority) - score(a, priority))
 }
 
 /** Índice del mejor valor de una métrica (mayor es mejor). Empates: ninguno destacado. */

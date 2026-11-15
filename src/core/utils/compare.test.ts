@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { CompareResponse } from '@/types'
-import { bestIndex, rank } from './compare'
+import { bestIndex, rank, score } from './compare'
 
 type R = CompareResponse['results'][number]
 const r = (label: string, status: string, sun: number, earth: number) =>
@@ -19,4 +19,9 @@ test('dentro del mismo estado, ordena por la prioridad', () => {
 test('bestIndex', () => {
   expect(bestIndex([1, 3, 2])).toBe(1)
   expect(bestIndex([3, 3])).toBeNull()
+})
+test('score: lo que ordena cada criterio de "Rank by"', () => {
+  expect(score(A, 'balanced')).toBe(146)
+  expect(score(A, 'power')).toBe(82)
+  expect(score(A, 'earth')).toBe(64)
 })

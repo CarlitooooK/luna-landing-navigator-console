@@ -93,9 +93,19 @@ Cada término y número tiene un "?" (`features/help/Help.tsx`, textos en `featu
 | "Compare scenarios" | `compare()` con 2 a 5 escenarios. Es la tecla luminosa mientras haya algo que comparar | `/compare` |
 | Next step | `nextStepCompare`: sin escenarios, "Add the current simulation"; con uno, "Add +7 days"; comparado, "Open in Simulate" con el primero del ranking, o "Add a scenario" si todos son NO-GO. En ese caso el rótulo "Recommended" pasa a "Least bad · still NO-GO" | Según la acción |
 | "Rank by" | Reordena la recomendación (Balanced, Sunlight, Earth link). Primero manda el estado del backend | No |
-| Matriz "Side by side" | 8 métricas por escenario; "Best" en la mejor si no hay empate. "First sunset" y "First Earthset" sin ocaso dicen "Never sets", "Never in view", "No sunlight" o "Rises later" (`setCell`), nunca "None" | — |
+| Matriz "Side by side" | Filas según Simple/Detailed (tabla abajo). "Best" en la mejor de las filas con barra, si no hay empate. Sin ocaso nunca dice "None" | — |
 
 Compare usa la duración y el panel de Setup, pero siempre `step_minutes = 120`.
+
+### Simple y Detailed en Compare
+
+Mismos datos de `/compare` en los dos modos; cambia cuánto se muestra y cómo se dice (C-06 del audit). Los términos siguen a Results: "Daylight" y "Talk to Earth" en Simple, "Sunlight" y "Earth link" en Detailed.
+
+| Parte | Simple | Detailed |
+| --- | --- | --- |
+| Matriz | 4 filas: Daylight y Talk to Earth (porcentaje entero, `pctWhole`), First sunset en días (`setCellPlain`: "In 3 days", "No sunset in this window", "Rises later") y Ground slope | 11 filas: Sunlight y Earth link (un decimal), Longest daylight y Longest link (h), First sunset y First Earthset (h, `setCell`), Peak power (W), Average factor (`avg_power_factor`), Ground slope, Elevation (m) y Nearest PSR (km, distancia al borde) |
+| Fila de escenario | Sitio, veredicto y fecha | Además la hora UTC y las coordenadas (`fmtCoord`) |
+| "Recommended" | Fecha, el veredicto con el título de Results ("A good place to land"…), Sol y Tierra en porcentaje entero y por qué gana según "Rank by" | Fecha, veredicto, porcentajes con un decimal, la regla del orden ("Ranked by verdict, then sunlight % + Earth link %.") y el puntaje del ganador (`score`) |
 
 ## History
 

@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { Columns2, Eye, Plus, Trash2 } from 'lucide-react'
 import { MAX_SCENARIOS, useMissionStore, type Scenario } from '@/core/store/useMissionStore'
-import { bestIndex, rank } from '@/core/utils/compare'
-import { setCell } from '@/core/utils/countdown'
+import { bestIndex, rank, score, type Priority } from '@/core/utils/compare'
+import { fmtCoord } from '@/core/utils/coordinates'
+import { setCell, setCellPlain } from '@/core/utils/countdown'
 import { atMidnight, shiftDays } from '@/core/utils/scenarios'
 import { NextStepBlock } from '@/features/suggest/NextStepBlock'
 import { nextStepCompare, type ActionId } from '@/features/suggest/nextStep'
 import { focusLater, useStepActions } from '@/features/suggest/useStepActions'
 import { withViewTransition } from '@/ui/motion'
-import { hoursShort, pct } from '@/core/utils/timeline'
+import { hoursShort, pct, pctWhole } from '@/core/utils/timeline'
 import { Button, Divider, Field, IconButton, Input, Panel, Segmented, Skeleton, StatusChip } from '@/ui'
 import type { CompareResponse } from '@/types'
 import { Help } from '@/features/help/Help'
@@ -22,6 +23,9 @@ function Badge({ i, size = 24 }: { i: number; size?: number }) {
     style={{ width: size, height: size, background: `linear-gradient(180deg, color-mix(in srgb, ${BADGE[i]} 55%, white), ${BADGE[i]})` }}>{letter(i)}</span>
 }
 
+/** Simple habla en lenguaje llano; Detailed muestra todas las cifras del servidor (C-06 del audit). */
+const useDetailed = () => useMissionStore((s) => s.detail === 'detailed')
+
 function useResult(i: number): CompareResponse['results'][number] | undefined {
   return useMissionStore((s) => s.comparison?.results[i])
 }
@@ -34,12 +38,16 @@ function ScenarioRow({ s, i }: { s: Scenario; i: number }) {
   const loading = useMissionStore((st) => shown && st.loading)
   const failed = useMissionStore((st) => (shown && !st.loading ? st.error?.code : undefined))
   const result = useResult(i)
+  const detailed = useDetailed()
   return (
     <li className={`flex items-start gap-2.5 rounded-xl p-2.5 ring-1 ${shown ? 'raised ring-white/20' : 'ring-white/8'}`}>
       <Badge i={i} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex items-center gap-1.5"><span className="truncate text-[13px] font-bold">{s.site.label}</span>{result && <StatusChip small status={result.site.status} />}</span>
-        <span className="tnum text-xs text-ink-2">{shortDate(s.startUtc)} · {s.startUtc.slice(11, 16)} UTC</span>
+        {/* En Simple todo escenario arranca a las 00:00 UTC: la hora no aporta. Detailed la muestra, con las coordenadas */}
+        <span className="tnum text-xs text-ink-2">{shortDate(s.startUtc)}</span>
+        {detailed && <span className="tnum flex flex-col font-mono text-[10px] whitespace-nowrap text-ink-3">
+          <span>{s.startUtc.slice(11, 16)} UTC</span><span>{fmtCoord(s.site.lat, s.site.lon)}</span></span>}
         {loading && <span role="status" className="text-xs text-ink-3">Loading on the globe…</span>}
         {failed && <span role="alert" className="text-xs text-nogo">Could not load it ({failed}). Try the eye again.</span>}
       </div>
@@ -91,6 +99,7 @@ export function ScenariosPanel() {
   const act = useCompareActions(bestI)
   // Una sola tecla luminosa: "Compare scenarios" mientras haya algo que comparar; después, la acción de Next step.
   const compareIsPrimary = scenarios.length >= 2 && !comparison && !compareError
+  const detailed = useDetailed()
   return (
     <Panel title={<span className="flex items-baseline gap-2"><h2 className="text-base font-bold">Scenarios</h2><Help id="scenario" className="self-center" />
       <span className="text-xs text-ink-3">{scenarios.length} of {MAX_SCENARIOS}</span></span>} label="Scenarios"
@@ -108,7 +117,10 @@ export function ScenariosPanel() {
             {/* Si el primero del ranking es NO-GO, no se recomienda: es el menos malo (C-02) */}
             <span className={`text-xs font-medium ${leastBad ? 'text-nogo' : 'text-ink-3'}`}>{leastBad ? 'Least bad · still NO-GO' : 'Recommended'}</span>
             <span className="flex items-center gap-2.5"><Badge i={bestI} size={22} /><span className="text-base font-bold">{scenarios[bestI]?.site.label}</span></span>
-            <span className="text-[13px] text-ink-2">{shortDate(scenarios[bestI]?.startUtc ?? '')} · {best.site.status} · sunlight {pct(best.summary.sun_visible_pct, 0)}, Earth {pct(best.summary.earth_visible_pct, 0)}.</span>
+            {detailed ? <>
+              <span className="text-[13px] text-ink-2">{shortDate(scenarios[bestI]?.startUtc ?? '')} · {best.site.status} · sunlight {pct(best.summary.sun_visible_pct)}, Earth link {pct(best.summary.earth_visible_pct)}.</span>
+              <span className="tnum text-xs text-ink-3">{RANK_RULE[priority]} Score {score(best, priority).toFixed(1)}.</span>
+            </> : <span className="text-[13px] text-ink-2">{shortDate(scenarios[bestI]?.startUtc ?? '')}. {PLAIN_STATUS[best.site.status] ?? best.site.status}: sunlight {pctWhole(best.summary.sun_visible_pct)} of the time, Earth in view {pctWhole(best.summary.earth_visible_pct)}. {PLAIN_WHY[priority]}</span>}
           </div>
           <Field label="Rank by" help={<Help id="rank-by" />}>
             <Segmented label="Rank by" value={priority} onChange={setPriority}
@@ -120,24 +132,62 @@ export function ScenariosPanel() {
   )
 }
 
-type Metric = { label: string; sub?: string; get: (r: CompareResponse['results'][number]) => number | null; fmt: (v: number | null) => string; bar?: number; color?: string
+type Result = CompareResponse['results'][number]
+type Metric = { label: string; sub?: string; get: (r: Result) => number | null; fmt: (v: number | null) => string; bar?: number; color?: string
   /** Texto propio cuando el número solo no basta (p. ej. sin ocaso: design.md §4.4). */
-  text?: (r: CompareResponse['results'][number]) => string }
-const METRICS: Metric[] = [
-  { label: 'Sunlight', sub: 'share of window', get: (r) => r.summary.sun_visible_pct, fmt: (v) => pct(v), bar: 100, color: 'var(--color-sun)' },
-  { label: 'Earth link', sub: 'Direct-to-Earth', get: (r) => r.summary.earth_visible_pct, fmt: (v) => pct(v), bar: 100, color: 'var(--color-earth)' },
+  text?: (r: Result) => string
+  /** Primera fila de un grupo: lleva la línea divisoria arriba. */
+  group?: boolean }
+
+const sunPct = (r: Result) => r.summary.sun_visible_pct
+const earthPct = (r: Result) => r.summary.earth_visible_pct
+const slope = (r: Result) => r.site.slope_deg
+const degrees = (v: number | null) => (v == null ? '—' : `${v.toFixed(1)}°`)
+
+/** Simple: cuatro filas en lenguaje llano y porcentajes enteros, los mismos términos que Results en Simple. */
+const SIMPLE_METRICS: Metric[] = [
+  { label: 'Daylight', sub: 'time with the Sun up', get: sunPct, fmt: pctWhole, bar: 100, color: 'var(--color-sun)', group: true },
+  { label: 'Talk to Earth', sub: 'time with Earth in view', get: earthPct, fmt: pctWhole, bar: 100, color: 'var(--color-earth)' },
+  { label: 'First sunset', get: (r) => r.summary.hours_to_next_sunset ?? null, fmt: hoursShort, text: (r) => setCellPlain(r.summary, 'sun'), group: true },
+  { label: 'Ground slope', get: slope, fmt: degrees },
+]
+
+/** Detailed: todas las cifras del resumen de `/compare`, con un decimal y en horas. */
+const DETAILED_METRICS: Metric[] = [
+  { label: 'Sunlight', sub: 'share of window', get: sunPct, fmt: (v) => pct(v), bar: 100, color: 'var(--color-sun)', group: true },
+  { label: 'Earth link', sub: 'Direct-to-Earth', get: earthPct, fmt: (v) => pct(v), bar: 100, color: 'var(--color-earth)' },
   { label: 'Longest daylight', sub: 'continuous', get: (r) => r.summary.max_continuous_sun_hours, fmt: hoursShort, bar: 336, color: 'var(--color-sun)' },
   { label: 'Longest link', sub: 'continuous', get: (r) => r.summary.max_continuous_dte_hours, fmt: hoursShort, bar: 336, color: 'var(--color-earth)' },
-  { label: 'First sunset', get: (r) => r.summary.hours_to_next_sunset ?? null, fmt: hoursShort, text: (r) => setCell(r.summary, 'sun') },
+  { label: 'First sunset', get: (r) => r.summary.hours_to_next_sunset ?? null, fmt: hoursShort, text: (r) => setCell(r.summary, 'sun'), group: true },
   { label: 'First Earthset', get: (r) => r.summary.hours_to_next_earthset ?? null, fmt: hoursShort, text: (r) => setCell(r.summary, 'earth') },
-  { label: 'Peak power', get: (r) => r.summary.estimated_peak_power_w, fmt: (v) => (v == null ? '—' : `${Math.round(v).toLocaleString('en-US')} W`) },
-  { label: 'Ground slope', get: (r) => r.site.slope_deg, fmt: (v) => (v == null ? '—' : `${v.toFixed(1)}°`) },
+  { label: 'Peak power', get: (r) => r.summary.estimated_peak_power_w, fmt: (v) => (v == null ? '—' : `${Math.round(v).toLocaleString('en-US')} W`), group: true },
+  { label: 'Average factor', sub: 'solar power, 0 to 1', get: (r) => r.summary.avg_power_factor, fmt: (v) => (v == null ? '—' : v.toFixed(2)) },
+  { label: 'Ground slope', get: slope, fmt: degrees, group: true },
+  { label: 'Elevation', sub: 'site height', get: (r) => r.site.elevation_m, fmt: (v) => (v == null ? '—' : `${v.toLocaleString('en-US', { maximumFractionDigits: 0 })} m`) },
+  { label: 'Nearest PSR', sub: 'to its edge', get: (r) => r.site.nearest_psr_km ?? null, fmt: (v) => (v == null ? '—' : `${v.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`) },
 ]
+
+/** Veredicto en palabras para "Recommended" en Simple (los mismos títulos que Results). */
+const PLAIN_STATUS: Record<string, string> = { GO: 'A good place to land', CAUTION: 'Possible, with risks', 'NO-GO': 'Not a safe choice' }
+/** Por qué gana, según "Rank by". El orden pone primero el veredicto (`rank`). */
+const PLAIN_WHY: Record<Priority, string> = {
+  balanced: 'It has the most sunlight and time with Earth in view, added together, among the options with the best verdict.',
+  power: 'It has the most sunlight among the options with the best verdict.',
+  earth: 'It has the most time with Earth in view among the options with the best verdict.',
+}
+/** La regla exacta del orden, para Detailed. */
+const RANK_RULE: Record<Priority, string> = {
+  balanced: 'Ranked by verdict, then sunlight % + Earth link %.',
+  power: 'Ranked by verdict, then sunlight %.',
+  earth: 'Ranked by verdict, then Earth link %.',
+}
 
 export function CompareMatrix() {
   const { scenarios, comparison, comparing } = useMissionStore()
+  const detailed = useDetailed()
   if (scenarios.length < 2 && !comparison) return null
   const results = comparison?.results ?? []
+  const metrics = detailed ? DETAILED_METRICS : SIMPLE_METRICS
   return (
     <Panel label="Side by side" peekAside={comparing ? 'Comparing…' : `${scenarios.length} scenarios`}
       className="absolute top-0 right-0 max-h-[calc(100%-180px)] w-[min(680px,100%)] gap-0 overflow-y-auto">
@@ -150,16 +200,16 @@ export function CompareMatrix() {
             <span className="text-xs text-ink-2">{shortDate(s.startUtc)}</span>
           </div>
         ))}
-        {METRICS.map((m, mi) => {
+        {metrics.map((m) => {
           const vals = results.map((r) => m.get(r))
           const best = m.bar ? bestIndex(vals.map((v) => v ?? -Infinity)) : null
           return (
             <div key={m.label} className="contents">
-              <div className={`flex flex-col py-2.5 ${mi === 0 || mi === 4 ? 'border-t border-hairline' : ''}`}>
+              <div className={`flex flex-col py-2.5 ${m.group ? 'border-t border-hairline' : ''}`}>
                 <span className="text-[13px] font-medium">{m.label}</span>{m.sub && <span className="text-[11px] text-ink-3">{m.sub}</span>}
               </div>
               {scenarios.map((s, i) => (
-                <div key={s.key} className={`flex flex-col justify-center gap-1.5 py-2.5 ${mi === 0 || mi === 4 ? 'border-t border-hairline' : ''}`}>
+                <div key={s.key} className={`flex flex-col justify-center gap-1.5 py-2.5 ${m.group ? 'border-t border-hairline' : ''}`}>
                   {comparing || !results[i] ? <Skeleton className="h-3.5 w-16" /> : <>
                     <span className="flex items-baseline gap-1.5">
                       <span className={`tnum font-mono text-sm ${best === i ? 'font-medium text-ink' : 'text-ink-2'}`}>{m.text ? m.text(results[i]) : m.fmt(vals[i])}</span>

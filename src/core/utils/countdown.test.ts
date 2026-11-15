@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { countdown, countdownFromSummary, setCell } from './countdown'
+import { countdown, countdownFromSummary, setCell, setCellPlain } from './countdown'
 
 const sum = (o: Partial<Record<'sun' | 'earth' | 'sunset' | 'earthset', number | null>>) => ({
   sun_visible_pct: o.sun ?? 50, earth_visible_pct: o.earth ?? 50,
@@ -44,4 +44,14 @@ test('setCell: texto corto para Compare y History, sin "None"', () => {
   expect(setCell(sum({ earth: 0 }), 'earth')).toBe('Never in view')
   expect(setCell(sum({ sun: 100 }), 'sun')).toBe('Never sets')
   expect(setCell(sum({ earth: 45.8 }), 'earth')).toBe('Rises later')
+})
+test('setCellPlain: días en lugar de horas para Compare en Simple', () => {
+  expect(setCellPlain(sum({ sun: 40, sunset: 71.2 }), 'sun')).toBe('In 3 days')
+  expect(setCellPlain(sum({ sun: 40, sunset: 30 }), 'sun')).toBe('In 1 day')
+  expect(setCellPlain(sum({ sun: 40, sunset: 5.4 }), 'sun')).toBe('In 5 h')
+  expect(setCellPlain(sum({ sun: 40, sunset: 0.2 }), 'sun')).toBe('In 1 h')
+  expect(setCellPlain(sum({ sun: 0 }), 'sun')).toBe('No sunlight')
+  expect(setCellPlain(sum({ sun: 100 }), 'sun')).toBe('No sunset in this window')
+  expect(setCellPlain(sum({ sun: 45.8 }), 'sun')).toBe('Rises later')
+  expect(setCellPlain(sum({ earth: 100 }), 'earth')).toBe('Stays in view')
 })
