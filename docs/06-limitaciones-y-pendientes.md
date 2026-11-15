@@ -39,6 +39,29 @@ Lo que hoy se ve o se comporta mal, con su causa en el código, y lo que falta p
 | Los créditos del globo incluyen texto en español ("Textura de regolito procedural (ilustrativa)") | `regolith.ts` del globo | Globo: traducir el crédito (la interfaz es en inglés) |
 | La telemetría y el descenso de la escena no son física y no cambian con un NO-GO | El contrato no tiene trayectoria ni resultado de aterrizaje | Mantener el rótulo "Illustrative"; no inventar datos |
 
+## Después de la spec de onboarding
+
+La spec `docs/specs/onboarding-ayudas-sugerencias/` (tour, ayudas "?", Next step y Help) está implementada. Esto es lo que dejó abierto. Los códigos (A-11, T-02…) son los hallazgos de su `audit.md`.
+
+| Pendiente | Por qué sigue abierto | Depende de |
+| --- | --- | --- |
+| Textos de `psr` y `power` sin revisión científica | Se preguntó en `P-011`; hasta la respuesta quedan como están en `glossary.ts` | Handoff (`P-011`) |
+| Qué significa `hours_to_next_*` en `null` | `countdown()` hoy asume "no se pone en la ventana"; se preguntó en `P-012` | Backend (`P-012`) |
+| ¿"Horizon view" y "Terrain detail" se unifican? | D14: "Horizon view" es la vista objetivo; "Terrain detail" no se tocó | Handoff (`P-013`) |
+| Validación de paneles y coordenadas (A-11, A-12) | Robustez de formularios, fuera del entendimiento de la consola | Consola |
+| Leyenda y escala del eje de Horizon 360° (T-02) | La ayuda `horizon-360` lo explica; la escala del eje es otra tarea | Consola |
+| Banderas Sunset / Earthset encimadas (T-04) | Presentación del timeline | Consola |
+| Visibilidad de la escena, terreno sin fuente y abanico polar (S-01, S-03, S-04) | Render; ver la tabla "Render y calidad visual" y `P-008`. **Desvío de la spec:** `design.md` §2.4 pedía que la ayuda `terrain-detail` agregara "Source: {grid.source}, {native_resolution_m} m per pixel.", pero las píldoras no llevan "?" y el glosario es texto fijo, así que hoy la fuente del parche no se ve en ningún lado | Consola + globo + backend |
+| Píldoras sin acción y `Segmented` sin flechas (S-02, X-04) | Accesibilidad de primitivas: tarea propia | Consola |
+| Matriz de Compare (C-04, C-05, C-06) | Presentación de Compare; la ayuda `rank-by` ya explica el orden | Consola |
+| Borrado sin deshacer, acciones parecidas y estrella pequeña en History (H-02, H-03, H-04) | Fuera del flujo principal de la demo | Consola |
+| Sobrescritura, siglas y desbordes de fuentes en Missions (M-03, M-04, M-05) | Pulido de Missions | Consola |
+| Tiras plegadas y contraste en pantalla completa (F-02, F-03) | Hay que revisarlo con GPU real y medir contraste | Consola |
+| Crédito del globo en español (X-05) | Está en la fila de "Datos y textos" | Globo |
+| Etiquetas del globo bajo los paneles (X-07) | Ajuste del vidrio o del globo, a revisar con GPU real | Consola + globo |
+| "Horizon view" no indica hacia dónde está la Tierra fuera de cuadro (S-05) | El paso 5 del tour y la ayuda `horizon-view` lo explican; el indicador le toca al globo | Globo |
+| El tour con `prefers-reduced-motion` no se probó en capturas | La herramienta de capturas no emula la preferencia; el código usa `prefersReducedMotion()` | Consola (prueba manual) |
+
 ## Opcionales aún sin hacer
 
 - Interruptor de `SET_VEHICLES` (módulo y astronauta fuera de la escena), `docs/11` §6b.

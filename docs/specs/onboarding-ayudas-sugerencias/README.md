@@ -1,6 +1,6 @@
 # Spec: tour, ayudas "?" y sugerencias
 
-**Estado:** decisiones tomadas el 2026-11-14 (D1–D12). Lista para implementar. No hay código de implementación.
+**Estado:** decisiones tomadas el 2026-11-14 (D1–D14). Implementada en la rama `feat/onboarding-bloque-a`, una tarea por commit (A1–D4 de [`tasks.md`](tasks.md)). Quedan abiertas `P-011`, `P-012` y `P-013` del handoff; los hallazgos que la spec no cierra están en `docs/06-limitaciones-y-pendientes.md`.
 **Rama:** `docs/spec-onboarding-ayudas`, desde `feat/simulacion-en-globo` (`29ba38b`).
 
 ## Objetivo
