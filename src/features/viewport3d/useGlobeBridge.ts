@@ -79,7 +79,7 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
       if (s) post({ type: 'SELECT_SITE', payload: { id: s.id, lat: s.lat, lon: s.lon, label: s.label } })
     }
     const pushAll = () => {
-      post({ type: 'SET_TERRAIN_SOURCE', payload: { baseUrl: API_BASE } })
+      post({ type: 'SET_CONFIG', payload: { terrainTilesUrl: `${API_BASE.replace(/\/+$/, '')}/terrain/tiles` } })
       sendMode()
       sendSites()
       sendSky()
