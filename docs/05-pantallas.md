@@ -54,6 +54,7 @@ Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CL
 | Sin corrida | Instrucción para empezar |
 | Calculando | Esqueleto y "Tracing the 360° horizon…" |
 | Error | `ErrorNotice` por código |
+| Desactualizado | Si el sitio o algún parámetro cambió desde la última corrida (`evaluatedFor` del store, `isStale` de `core/utils/stale.ts`): aviso "Out of date. These results are for {sitio}, {fecha}…", resultados al 60 % y la tira plegada dice "Out of date" |
 | Simple | Chip de estado y titular llano; "Daylight" y "Talk to Earth" (cuenta atrás y % en vista). La cuenta la decide `countdown()` (`core/utils/countdown.ts`): "until sunset" si el astro está visible al inicio, "until sunrise" o "until Earth rises" si empieza oculto, "No sunlight…" o "Earth never in view" con 0 %, y "No sunset…" o "Earth stays in view" si no se pone. Un porcentaje entre 0 y 1 se muestra "<1%"; "Solar power now" (`power_factor` del paso actual); "Ground" (pendiente y distancia a la PSR) |
 | Detailed | Chip y `reasons` del backend (en español); tabla Sol/Tierra del paso actual (estado, azimut, elevación, horizonte, holgura = elevación − horizonte); % visibles, tramo continuo más largo, próximos ocasos; energía (factor actual, promedio, pico en W); terreno (elevación, pendiente, PSR) |
 

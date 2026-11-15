@@ -5,6 +5,7 @@ import { api } from '@/core/api/endpoints'
 import { ApiError } from '@/core/api/errors'
 import { toUtcIso } from '@/core/utils/time'
 import type { Priority } from '@/core/utils/compare'
+import type { RunParams } from '@/core/utils/stale'
 import type { CompareResponse, Ephemeris, Evaluation, HealthResponse, PsrList, PsrNearby, Site, TerrainPatch } from '@/types'
 
 export type Workspace = 'simulate' | 'compare' | 'history' | 'missions'
@@ -50,6 +51,8 @@ interface MissionState {
   loading: boolean
   error: ApiError | null
   lastRunMs: number | null
+  /** Con qué sitio y parámetros se hizo `evaluation`; sirve para marcar Results como desactualizado (`isStale`). */
+  evaluatedFor: RunParams | null
 
   // capa 3: reproducción
   stepIndex: number
@@ -104,7 +107,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
   health: null, sites: [], selected: null,
   startUtc: toUtcIso(new Date('2026-12-01T00:00:00Z')), // valor de prueba de docs/07
   durationDays: 14, stepMinutes: 60, panelAreaM2: 4, panelEfficiency: 0.28,
-  evaluation: null, terrain: null, psrs: null, auxFailed: [], ephemeris: null, polePsrs: null, loading: false, error: null, lastRunMs: null,
+  evaluation: null, terrain: null, psrs: null, auxFailed: [], ephemeris: null, polePsrs: null, loading: false, error: null, lastRunMs: null, evaluatedFor: null,
   stepIndex: 0, playing: false,
   scenarios: [], comparison: null, comparing: false, compareError: null, shownScenario: null, rankBy: 'balanced',
   pickedRun: null, pickedMission: 'im-1',
@@ -161,7 +164,8 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       // Con el globo disponible la simulación se queda en él (vuelo continuo, sin cambio de motor);
       // la escena local del parche queda como "Terrain detail". Sin globo, la escena local es el fondo.
       const globeOk = !!GLOBE_URL && useGlobeStore.getState().link !== 'unavailable'
-      set({ evaluation: ev.value, terrain, psrs, auxFailed, loading: false, viewMode: !globeOk && terrain ? 'site' : 'globe', lastRunMs: performance.now() - t0 })
+      set({ evaluation: ev.value, terrain, psrs, auxFailed, loading: false, viewMode: !globeOk && terrain ? 'site' : 'globe', lastRunMs: performance.now() - t0,
+        evaluatedFor: { lat, lon, label: selected.label, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency } })
     } catch (e) { set({ error: e as ApiError, loading: false }) }
   },
   backToGlobe: () => set({ viewMode: 'globe', playing: false }),

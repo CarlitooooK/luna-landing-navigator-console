@@ -1,6 +1,7 @@
 import { Globe2, Mountain, Snowflake, Sun, Zap, type LucideIcon } from 'lucide-react'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { countdown, type Body, type Countdown as CountdownT } from '@/core/utils/countdown'
+import { isStale } from '@/core/utils/stale'
 import { deg, formatHours, hoursShort, pct, pctWhole } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Divider, Flow, IconWell, Meter, Panel, SectionTitle, Skeleton, StatusChip, type Signal } from '@/ui'
@@ -167,15 +168,33 @@ export function ResultsPanel() {
   const evaluation = useMissionStore((s) => s.evaluation)
   const loading = useMissionStore((s) => s.loading)
   const error = useMissionStore((s) => s.error)
+  const stale = useStale()
   return (
     <Panel title="Results" label="Results"
-      peekAside={loading ? 'Calculating…' : error ? <span className="text-nogo">Failed</span> : evaluation ? <StatusChip small status={evaluation.site.status} /> : 'No run yet'}>
+      peekAside={loading ? 'Calculating…' : error ? <span className="text-nogo">Failed</span> : evaluation ? (stale ? 'Out of date' : <StatusChip small status={evaluation.site.status} />) : 'No run yet'}>
+      {!loading && !error && evaluation && stale && <StaleNotice />}
       {loading ? <Loading />
         : error ? <ErrorNotice />
         : !evaluation ? <p className="text-[13px] leading-[19px] text-ink-2">Choose a landing site and a date, then run the simulation to see sunlight, the link to Earth and the ground.</p>
-        : detail === 'detailed' ? <Detailed /> : <Simple />}
+        : <div className={`flex flex-col gap-4 transition-opacity duration-300 ${stale ? 'opacity-60' : ''}`}>{detail === 'detailed' ? <Detailed /> : <Simple />}</div>}
       {!loading && !error && evaluation && <AuxNotice />}
     </Panel>
+  )
+}
+
+/** ¿Cambió el sitio o algún parámetro desde la última corrida? (`isStale`, tarea A4) */
+function useStale() {
+  return useMissionStore((s) => isStale({ lat: s.selected?.lat, lon: s.selected?.lon, startUtc: s.startUtc, durationDays: s.durationDays,
+    stepMinutes: s.stepMinutes, panelAreaM2: s.panelAreaM2, panelEfficiency: s.panelEfficiency }, s.evaluatedFor))
+}
+
+/** Results sigue mostrando la corrida anterior, atenuada, y dice de qué es. */
+function StaleNotice() {
+  const run = useMissionStore((s) => s.evaluatedFor)!
+  return (
+    <p role="status" className="rounded-xl bg-white/5 px-3 py-2 text-xs leading-[18px] text-ink-2 ring-1 ring-white/10">
+      <span className="font-bold text-caution">Out of date.</span> These results are for {run.label}, {formatUtc(run.startUtc)}. Run the simulation again to update them.
+    </p>
   )
 }
 
