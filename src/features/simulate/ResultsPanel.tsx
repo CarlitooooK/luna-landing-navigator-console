@@ -88,8 +88,8 @@ function Simple() {
         note={`Earth in view ${pctWhole(m.earth_visible_pct)} of the mission.`} share={m.earth_visible_pct / 100} />
       <Fact icon={Zap} signal="sun" label="Solar power now" value={point ? `${Math.round(point.power_factor * 100)}%` : '—'} unit="of panel output"
         note={`Peak in this window: ${(m.estimated_peak_power_w / 1000).toFixed(1)} kW.`} />
-      <Fact icon={Mountain} signal="regolith" label="Ground" value={`${site.slope_deg.toFixed(1)}°`} unit="tilt"
-        note={site.nearest_psr_km != null ? `Permanent shadow ${site.nearest_psr_km.toFixed(1)} km away.` : 'Local slope of the landing spot.'} />
+      <Fact icon={Mountain} signal="regolith" label="Ground slope" value={`${site.slope_deg.toFixed(1)}°`} unit=""
+        note={site.nearest_psr_km != null ? `Permanent shadow ${site.nearest_psr_km.toFixed(1)} km away.` : 'At the landing spot.'} />
     </>
   )
 }
@@ -106,8 +106,8 @@ function Detailed() {
     <>
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between"><StatusChip status={site.status} />
-          <span className="text-xs text-ink-2">{site.reasons.length} checks from the backend</span></div>
-        {/* reasons llegan en español desde el backend: pendiente en docs/ideas/console-ui-figma.md */}
+          <span className="text-xs text-ink-2">Server notes (in Spanish)</span></div>
+        {/* reasons llega en español; la tarea B5 de la spec de onboarding las sustituye por site.checks (inglés) cuando el backend los manda */}
         <ul className="flex flex-col gap-1.5">
           {site.reasons.map((r) => <li key={r} className="text-xs leading-[17px] text-ink" lang="es">{r}</li>)}
         </ul>
@@ -142,10 +142,10 @@ function Detailed() {
       </div>
       <Divider />
       <div className="flex flex-col gap-0.5">
-        <SectionTitle><span className="flex items-center gap-2"><Mountain size={14} className="text-regolith" aria-hidden />Terrain & ice</span></SectionTitle>
+        <SectionTitle><span className="flex items-center gap-2"><Mountain size={14} className="text-regolith" aria-hidden />Terrain</span></SectionTitle>
         <Row k="Elevation" a={`${site.elevation_m.toLocaleString('en-US', { maximumFractionDigits: 1 })} m`} />
-        <Row k="Local slope" a={`${site.slope_deg.toFixed(1)}°`} />
-        <div className="flex h-6 items-center text-xs"><span className="flex flex-1 items-center gap-1.5 text-ink-2"><Snowflake size={12} className="text-psr" aria-hidden />Nearest shadow zone</span>
+        <Row k="Ground slope" a={`${site.slope_deg.toFixed(1)}°`} />
+        <div className="flex h-6 items-center text-xs"><span className="flex flex-1 items-center gap-1.5 text-ink-2"><Snowflake size={12} className="text-psr" aria-hidden />Permanent shadow</span>
           <span className="tnum font-mono text-[13px] font-medium">{site.nearest_psr_km != null ? `${site.nearest_psr_km.toFixed(1)} km` : '—'}</span></div>
       </div>
     </>

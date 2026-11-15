@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { countdown, countdownFromSummary } from './countdown'
+import { countdown, countdownFromSummary, setCell } from './countdown'
 
 const sum = (o: Partial<Record<'sun' | 'earth' | 'sunset' | 'earthset', number | null>>) => ({
   sun_visible_pct: o.sun ?? 50, earth_visible_pct: o.earth ?? 50,
@@ -37,4 +37,11 @@ test('Compare: null con 0 %, 100 % o un porcentaje intermedio', () => {
   expect(countdownFromSummary(sum({ earth: 0 }), 'earth')).toEqual({ kind: 'never' })
   expect(countdownFromSummary(sum({ earth: 100 }), 'earth')).toEqual({ kind: 'always' })
   expect(countdownFromSummary(sum({ earth: 45.8 }), 'earth')).toEqual({ kind: 'rises-later' })
+})
+test('setCell: texto corto para Compare y History, sin "None"', () => {
+  expect(setCell(sum({ sun: 40, sunset: 58.4 }), 'sun')).toBe('58 h')
+  expect(setCell(sum({ sun: 0 }), 'sun')).toBe('No sunlight')
+  expect(setCell(sum({ earth: 0 }), 'earth')).toBe('Never in view')
+  expect(setCell(sum({ sun: 100 }), 'sun')).toBe('Never sets')
+  expect(setCell(sum({ earth: 45.8 }), 'earth')).toBe('Rises later')
 })

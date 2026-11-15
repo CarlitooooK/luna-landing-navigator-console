@@ -42,3 +42,15 @@ export function countdown(s: Summary, timeline: readonly Point[], b: Body): Coun
   const set = setOf(s, b)
   return set != null ? { kind: 'until-set', hours: set } : { kind: 'always' }
 }
+
+/** Celda corta de "First sunset" / "First Earthset" en Compare y History, que solo tienen el resumen (design.md §4.4). */
+export function setCell(s: Summary, b: Body): string {
+  const c = countdownFromSummary(s, b)
+  switch (c.kind) {
+    case 'until-set': return `${Math.round(c.hours)} h`
+    case 'never': return b === 'sun' ? 'No sunlight' : 'Never in view'
+    case 'always': return 'Never sets'
+    case 'rises-later': return 'Rises later'
+    case 'until-rise': return `Rises in ${Math.round(c.hours)} h`
+  }
+}

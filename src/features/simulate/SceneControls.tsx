@@ -47,7 +47,7 @@ export function SceneControls() {
           <Clapperboard size={14} aria-hidden />
           {link === 'unavailable' ? 'The globe is not available' : landing.phase ? PHASE_TEXT[landing.phase] : 'Starting…'}
           {/* La curva de descenso no es física: lo dice el rótulo de la fase */}
-          {telemetry && <span className="tnum font-mono">· {Math.round(landing.altM!)} m · {landing.vMps!.toFixed(1)} m/s</span>}
+          {telemetry && <span className="tnum font-mono">· altitude {Math.round(landing.altM!)} m · speed {Math.round(landing.vMps!)} m/s</span>}
         </Pill>
         <Pill onClick={clearLanding} aria-label="Exit the landing scene"><LogOut size={14} aria-hidden />Exit scene</Pill>
       </>
@@ -84,7 +84,7 @@ export function SceneControls() {
         </Pill>
       )}
       {hasTerrain && (
-        <Pill onClick={showSite} aria-label="Open the local terrain from the API">
+        <Pill onClick={showSite} aria-label="Open the local terrain around this site">
           <Mountain size={14} aria-hidden />Terrain detail
         </Pill>
       )}

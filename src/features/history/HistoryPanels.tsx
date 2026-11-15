@@ -3,7 +3,8 @@ import { AlertTriangle, Check, Columns2, Copy, Globe2, History as HistoryIcon, P
 import { withViewTransition } from '@/ui/motion'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { groupByDay, useHistoryStore, type HistoryRun } from '@/core/store/useHistoryStore'
-import { hoursShort, pct } from '@/core/utils/timeline'
+import { setCell } from '@/core/utils/countdown'
+import { pct } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Button, Divider, Input, Panel, Segmented, StatusChip } from '@/ui'
 
@@ -53,7 +54,7 @@ export function HistoryList() {
     </Panel>
   )
   return (
-    <Panel label="History" title="History" aside={<span className="text-xs text-ink-3">{runs.length} runs</span>}
+    <Panel label="History" title="History" aside={<span className="text-xs text-ink-3">{runs.length} {runs.length === 1 ? 'run' : 'runs'}</span>}
       peekAside={`${runs.length} ${runs.length === 1 ? 'run' : 'runs'}`} className="h-full">
       <Input icon={Search} placeholder="Search by site, date or note" aria-label="Search history" value={q} onChange={(e) => setQ(e.target.value)} />
       <Segmented size="sm" label="Filter runs" value={filter} onChange={setFilter}
@@ -98,8 +99,8 @@ export function RunDetails() {
       <Divider />
       <dl className="flex flex-col gap-1 text-xs">
         {([[Sun, 'text-sun', 'Sunlight', pct(s.sun_visible_pct)], [Globe2, 'text-earth', 'Earth link', pct(s.earth_visible_pct)],
-          [Sun, 'text-sun', 'Next sunset', s.hours_to_next_sunset == null ? 'None' : hoursShort(s.hours_to_next_sunset)],
-          [Globe2, 'text-earth', 'Next Earthset', s.hours_to_next_earthset == null ? 'None' : hoursShort(s.hours_to_next_earthset)]] as const).map(([I, c, k, v]) => (
+          [Sun, 'text-sun', 'Next sunset', setCell(s, 'sun')],
+          [Globe2, 'text-earth', 'Next Earthset', setCell(s, 'earth')]] as const).map(([I, c, k, v]) => (
           <div key={k} className="flex h-6 items-center justify-between"><dt className="flex items-center gap-2 text-ink-2"><I size={13} className={c} aria-hidden />{k}</dt>
             <dd className="tnum font-mono text-[13px]">{v}</dd></div>))}
       </dl>

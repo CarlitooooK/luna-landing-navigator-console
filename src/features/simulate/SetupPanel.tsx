@@ -124,7 +124,7 @@ function TimeField({ time, onCommit }: { time: string; onCommit: (t: string) => 
     if (t !== time) onCommit(t)
   }
   return (
-    <Field label="Time (UTC)" error={error}>
+    <Field label="Landing time (UTC)" error={error}>
       <Input mono inputMode="numeric" maxLength={5} placeholder="HH:MM" value={draft} invalid={!!error}
         onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => { if (e.key === 'Enter') commit() }} />
     </Field>
@@ -138,7 +138,7 @@ function WindowFields({ detailed }: { detailed: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-[1.35fr_1fr] gap-2.5">
-        <Field label="Date"><Input type="date" value={date} onChange={(e) => set(e.target.value, time)} /></Field>
+        <Field label="Landing date"><Input type="date" value={date} onChange={(e) => set(e.target.value, time)} /></Field>
         <TimeField time={time} onCommit={(t) => set(date, t)} />
       </div>
       <Field label="Mission length" hint={detailed ? undefined : '14 days is one lunar daylight period.'}>
@@ -207,7 +207,7 @@ function RunBar({ detailed }: { detailed: boolean }) {
       </p>
       {lastRunMs != null && n != null && (
         <p className={detailed ? 'tnum font-mono text-[11px] text-ink-3' : 'text-xs text-ink-3'}>
-          {detailed ? `POST /evaluate · ${(lastRunMs / 1000).toFixed(2)} s · ${n} steps` : `Last run took ${lastRunMs < 100 ? 'under 0.1' : (lastRunMs / 1000).toFixed(1)} s · ${n} steps`}
+          {detailed ? `Computed in ${(lastRunMs / 1000).toFixed(2)} s · ${n} samples` : `Last run took ${lastRunMs < 100 ? 'under 0.1' : (lastRunMs / 1000).toFixed(1)} s`}
         </p>
       )}
     </div>

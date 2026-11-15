@@ -53,7 +53,7 @@ Campos de la respuesta y dónde se ven:
 | --- | --- |
 | `site.status` | Chip GO/CAUTION/NO-GO y titular de Results; color del pin en el globo; History |
 | `site.reasons` (en español) | Results › Detailed, lista de comprobaciones (`lang="es"`) |
-| `site.slope_deg` | Results (Simple "Ground", Detailed "Local slope"); Missions "Ground" |
+| `site.slope_deg` | Results (Simple y Detailed "Ground slope"); Missions "Ground" |
 | `site.elevation_m` | Results › Detailed |
 | `site.nearest_psr_km` | Results (Simple "Permanent shadow N km away", Detailed) |
 | `site.lat`, `site.lon` | Sitio de los vectores para el globo y de la escena de alunizaje |

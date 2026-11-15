@@ -37,13 +37,13 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Catalog / Custom | Detailed | Elige entre selector de sitios y coordenadas libres | — |
 | Selector "Site" | Detailed › Catalog | `select()` | No |
 | Latitude / Longitude | Detailed › Custom | Valida `[-90, 90]` y `[-180, 360]` (D-010) y hace `select()` de un "Custom pin" en cada cambio válido | No |
-| Date / Time (UTC) | Ambos | `setConfig({startUtc})`. La hora es un campo de texto de 24 horas (`HH:MM`, `parseUtcTime`), validado al salir o con Enter; no usa `<input type="time">` porque sigue el formato de 12 horas del sistema | No |
+| Landing date / Landing time (UTC) | Ambos | `setConfig({startUtc})`. La hora es un campo de texto de 24 horas (`HH:MM`, `parseUtcTime`), validado al salir o con Enter; no usa `<input type="time">` porque sigue el formato de 12 horas del sistema | No |
 | Mission length | Ambos | 7, 14 o 29,5 días | No |
 | Time step | Detailed | 15, 60 o 120 min | No |
 | Solar panels | Simple: resumen que se abre; Detailed: siempre abierto | Área (m²) y eficiencia (%) | No |
 | **Run simulation** | Ambos | `evaluate()` ([`01`](01-arquitectura.md)) | Sí: `/evaluate`, `/terrain/patch`, `/psr/nearby` |
 | Marcador (bookmark) | Ambos | Guarda la corrida en History (`useHistoryStore.save`), con sus paneles. Dice "Saved to history." o, si ya existe una igual (`isSameRun`), "Already in history." sin duplicarla. Deshabilitado si Results está desactualizado | No |
-| "Last run took…" | Ambos | Tiempo de las tres peticiones y número de pasos | — |
+| "Last run took…" / "Computed in…" | Ambos | Simple: tiempo de las peticiones. Detailed: tiempo y número de muestras | — |
 
 Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CLICKED` / `GLOBE_CLICKED`), salvo durante la escena de alunizaje.
 
@@ -56,7 +56,7 @@ Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CL
 | Error | `ErrorNotice` por código |
 | Desactualizado | Si el sitio o algún parámetro cambió desde la última corrida (`evaluatedFor` del store, `isStale` de `core/utils/stale.ts`): aviso "Out of date. These results are for {sitio}, {fecha}…", resultados al 60 % y la tira plegada dice "Out of date" |
 | Simple | Chip de estado y titular llano; "Daylight" y "Talk to Earth" (cuenta atrás y % en vista). La cuenta la decide `countdown()` (`core/utils/countdown.ts`): "until sunset" si el astro está visible al inicio, "until sunrise" o "until Earth rises" si empieza oculto, "No sunlight…" o "Earth never in view" con 0 %, y "No sunset…" o "Earth stays in view" si no se pone. Un porcentaje entre 0 y 1 se muestra "<1%"; "Solar power now" (`power_factor` del paso actual); "Ground" (pendiente y distancia a la PSR) |
-| Detailed | Chip y `reasons` del backend (en español); tabla Sol/Tierra del paso actual (estado, azimut, elevación, horizonte, holgura = elevación − horizonte); % visibles, tramo continuo más largo, próximos ocasos; energía (factor actual, promedio, pico en W); terreno (elevación, pendiente, PSR) |
+| Detailed | Chip y `reasons` del backend con el rótulo "Server notes (in Spanish)" y `lang="es"` (B5 las cambiará por `site.checks`); tabla Sol/Tierra del paso actual (estado, azimut, elevación, horizonte, holgura = elevación − horizonte); % visibles, tramo continuo más largo, próximos ocasos; energía (factor actual, promedio, pico en W); terreno (elevación, pendiente, PSR) |
 
 "Solar power now" y la tabla del paso actual cambian con el scrubber. Todo lo demás es el resumen de la corrida.
 
@@ -76,12 +76,12 @@ Cada cambio de paso actualiza Results, la luz de la escena local y el Sol y la T
 
 | Control | Acción | Red |
 | --- | --- | --- |
-| Site + Date (UTC) + "Add scenario" | Agrega un escenario a las 00:00 UTC. Máximo 5; rechaza sitio + fecha repetidos | No |
+| Site + Landing date (UTC) + "Add scenario" | Agrega un escenario a las 00:00 UTC. Máximo 5; rechaza sitio + fecha repetidos | No |
 | Ojo de un escenario | `showScenario()`: selecciona sitio y fecha y llama `evaluate()`. El fondo y el timeline pasan a ese escenario | `/evaluate`, `/terrain/patch`, `/psr/nearby` |
 | Papelera | Quita el escenario y borra la comparación | No |
 | "Compare scenarios" | `compare()` con 2 a 5 escenarios | `/compare` |
 | "Rank by" | Reordena la recomendación (Balanced, Power, Earth link). Primero manda el estado del backend | No |
-| Matriz "Side by side" | 8 métricas por escenario; "Best" en la mejor si no hay empate | — |
+| Matriz "Side by side" | 8 métricas por escenario; "Best" en la mejor si no hay empate. "First sunset" y "First Earthset" sin ocaso dicen "Never sets", "Never in view", "No sunlight" o "Rises later" (`setCell`), nunca "None" | — |
 
 Compare usa la duración y el panel de Setup, pero siempre `step_minutes = 120`.
 
