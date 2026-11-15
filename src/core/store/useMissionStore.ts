@@ -150,7 +150,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       const [ev, tr, ps] = await Promise.allSettled([
         api.evaluate({ lat, lon, start_utc: startUtc, duration_days: durationDays, step_minutes: stepMinutes,
           panel_efficiency: panelEfficiency, panel_area_m2: panelAreaM2 }),
-        samePlace ? Promise.resolve(get().terrain!) : api.terrainPatch({ lat, lon, size_km: 12, resolution: 128 }),
+        samePlace ? Promise.resolve(get().terrain!) : api.terrainPatch({ lat, lon, size_km: 12, resolution: 256 }),
         samePlace ? Promise.resolve(get().psrs) : api.psrNearby({ lat, lon }),
       ])
       if (ev.status === 'rejected') throw ev.reason
