@@ -138,7 +138,7 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 | `HelpId` | Dónde | Texto | Fuente |
 | --- | --- | --- | --- |
 | `verdict` | Chip de estado en Results (`ResultsPanel.tsx:65`, `:93`), Compare, History y Missions | GO: every check passes. CAUTION: at least one check is marginal. NO-GO: at least one check fails. The server decides; the console only shows it. | Contrato §4.4 "Veredicto" |
-| `daylight` | "Daylight" (`:70`) y pista "Sunlight" | Time until the Sun first drops behind the local terrain, and the share of the mission with direct sunlight. | `hours_to_next_sunset`, `sun_visible_pct` |
+| `daylight` | "Daylight" (`:70`) y pista "Sunlight" | Time until the Sun next sets or rises behind the local terrain, and the share of the mission with direct sunlight. | `hours_to_next_sunset`, `sun_visible_pct` |
 | `earth-link` | "Talk to Earth" (`:72`), "Earth link", "Earth in view" | A direct radio link (Direct-to-Earth, DTE) needs Earth above the local horizon. With Earth never in view, the mission needs a relay satellite. | `earth_visible_pct`; mensaje de `DTE_NONE` |
 | `power` | "Solar power now" (`:74`), "Power factor now", "Average factor" | Relative solar power at the time selected on the timeline, as reported by the server. Move the timeline to watch it change. | `power_factor`. **Pendiente:** la definición exacta no está en el contrato (pregunta al backend en [`README.md`](README.md)) |
 | `peak-power` | "Peak in this window" (`:75`, `:126`) | Highest estimated electrical power in the window, for the panel area and efficiency set in Setup. | `estimated_peak_power_w` |
@@ -161,7 +161,7 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 | --- | --- | --- | --- |
 | `detail-level` | `DetailToggle` (`TopBar.tsx:30`) | Simple speaks plain language. Detailed shows the full telemetry. Same simulation, same verdict. | `PRODUCT.md`, principio 2 |
 | `data-source` | Chip de origen de datos (`TopBar.tsx:21`). Sustituye al `title` actual | Live data: computed by the simulation server from NASA terrain and ephemerides. Degraded: the server answers, but one of its parts is not healthy. Offline: the server cannot be reached. | `GET /health`. "Sample data" desaparece con el mock (D13) |
-| `scenario` | Título "Scenarios" (`ComparePanels.tsx:78`) | A scenario is one site on one landing date, starting at 00:00 UTC. Compare two to five. They all use the mission length and solar panels set in Simulate. | Contrato §4.5; `useMissionStore.ts:145-152` |
+| `scenario` | Título "Scenarios" (`ComparePanels.tsx:78`) | A scenario is one site on one landing date, starting at 00:00 UTC. Compare two to five. They all use the mission length and solar panels set in Simulate, with a 2-hour time step. | Contrato §4.5; `useMissionStore.ts:145-152` |
 | `rank-by` | "Rank by" (`:96`) | GO always ranks above CAUTION, and CAUTION above NO-GO. Within the same verdict: Balanced adds sunlight and Earth shares, Sunlight uses the sunlit share, Earth link uses the Earth-in-view share. | `core/utils/compare.ts`. La opción "Power" pasa a llamarse **"Sunlight"**: ordena por `sun_visible_pct`, no por potencia |
 
 ### 2.6 Botón Help y glosario
@@ -169,7 +169,7 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 En la barra superior, a la izquierda de "Full screen", y también en la barra de pantalla completa: un botón `raised` con el ícono `CircleHelp`, el texto "Help" y `<Kbd>?</Kbd>`. La tecla `?` lo abre, con la misma protección que `F` (no actúa dentro de un campo). Abre un `popover` de 360 px con tres secciones:
 
 1. **"Take the tour"**: relanza el tour.
-2. **"Glossary"**: todas las entradas del catálogo agrupadas en Verdict, Sun and power, Earth link, Terrain y Time. Es el mismo texto de los "?".
+2. **"Glossary"**: todas las entradas del catálogo agrupadas en Setup, Verdict, Sun and power, Earth link, Terrain, Time, Views y Compare (`HELP_GROUPS` de `glossary.ts`). Es el mismo texto de los "?".
 3. **"Shortcuts"**: solo los que existen: `F` full screen, `?` help, `←` `→` move the timeline, `Esc` close.
 
 ### 2.7 El porqué del veredicto: `site.checks`
