@@ -1,12 +1,14 @@
 // Primitivas de la interfaz (Figma: Glass/Panel, Glass/Raised, Glass/Inset, Button/Primary, Glow/*).
-import { createContext, useContext, useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react'
+import { useContext, useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react'
 import { AlertTriangle, Check, X, type LucideIcon } from 'lucide-react'
 import type { MissionStatus } from '@/types'
 import { SIGNAL, type Signal } from './signal'
 import { GLIDER, useGlider } from './motion'
+import { FieldContext } from './field'
 
 export { SIGNAL, type Signal }
 export { Flow } from './Flow'
+export { HelpTip } from './HelpTip'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 
@@ -74,9 +76,6 @@ export function Segmented<T extends string | number>({ options, value, onChange,
   )
 }
 
-/** Lo que `Field` le pasa a su `Input`: el id del control y el del texto que lo describe (tarea B1). */
-const FieldContext = createContext<{ id: string; describedBy?: string } | null>(null)
-
 /**
  * Etiqueta, control y texto de ayuda o error. Es un `<div>` y no un `<label>` que envuelve:
  * así un clic en el texto no activa el primer botón de un `Segmented`, y cabe un botón "?" (`help`) junto a la etiqueta.
@@ -87,15 +86,19 @@ export function Field({ label, children, hint, error, help, className }: {
 }) {
   const id = useId()
   const note = error || hint ? `${id}-note` : undefined
+  const helpId = help ? `${id}-help` : undefined
+  const describedBy = [note, helpId].filter(Boolean).join(' ') || undefined
   return (
-    <div className={cx('flex min-w-0 flex-col gap-1.5', className)}>
-      <span className="flex items-center gap-1">
-        <label htmlFor={id} className={cx('text-xs font-medium', error ? 'text-nogo' : 'text-ink-3')}>{label}</label>{help}
-      </span>
-      <FieldContext.Provider value={{ id, describedBy: note }}>{children}</FieldContext.Provider>
-      {error ? <span id={note} className="flex gap-2 text-xs text-ink"><AlertTriangle size={14} className="mt-px shrink-0 text-nogo" />{error}</span>
-        : hint && <span id={note} className="text-xs text-ink-3">{hint}</span>}
-    </div>
+    <FieldContext.Provider value={{ id, describedBy, helpId }}>
+      <div className={cx('flex min-w-0 flex-col gap-1.5', className)}>
+        <span className="flex items-center gap-1">
+          <label htmlFor={id} className={cx('text-xs font-medium', error ? 'text-nogo' : 'text-ink-3')}>{label}</label>{help}
+        </span>
+        {children}
+        {error ? <span id={note} className="flex gap-2 text-xs text-ink"><AlertTriangle size={14} className="mt-px shrink-0 text-nogo" />{error}</span>
+          : hint && <span id={note} className="text-xs text-ink-3">{hint}</span>}
+      </div>
+    </FieldContext.Provider>
   )
 }
 

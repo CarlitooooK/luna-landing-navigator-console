@@ -291,6 +291,8 @@
 @media (prefers-reduced-motion: reduce) {
   :root { --rise: 0px; --drift: 0px; --soften: 0px; --ease-spring: ease-out; }
   .pour, .breathe, .ignite, .shimmer::after { animation: none; }
+  /* La burbuja de ayuda y las listas solo se funden: sin desplazamiento ni desenfoque */
+  .drip { animation: fade-in 150ms both; }
   [class*="raised"]:active, .btn-primary:active { scale: 1; }
   ::view-transition-group(*) { animation-duration: 0ms; }
 }
