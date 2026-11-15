@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { GLOBE_URL } from '@/core/config'
 import { useGlobeStore } from './useGlobeStore'
+import { useHistoryStore, type HistoryComparison } from './useHistoryStore'
 import { api } from '@/core/api/endpoints'
 import { ApiError } from '@/core/api/errors'
 import { toUtcIso } from '@/core/utils/time'
@@ -94,6 +95,8 @@ interface MissionState {
   compareSites: () => void
   removeScenario: (key: string) => void
   compare: () => Promise<void>
+  /** Carga en Compare una comparación de History (escenarios, duración y paneles), pasa a Compare y la vuelve a pedir. */
+  restoreComparison: (c: HistoryComparison) => Promise<void>
   showScenario: (key: string) => Promise<void>
   pickRun: (id: string | null) => void
   pickMission: (id: string) => void
@@ -215,7 +218,15 @@ export const useMissionStore = create<MissionState>((set, get) => ({
         include_timeline: false, // v1.2 (D-014): la tabla solo usa los resúmenes; el timeline se pide al mostrar un escenario
       })
       set({ comparison, comparing: false })
+      // Cada comparación que responde queda en History (las letras A–E siguen el orden de `scenarios`)
+      if (comparison.results.length === scenarios.length) useHistoryStore.getState().saveComparison({
+        scenarios: scenarios.map(({ label, site, startUtc }) => ({ label, site, startUtc })), durationDays, panelAreaM2, panelEfficiency, comparison })
     } catch (e) { set({ compareError: e as ApiError, comparing: false }) }
+  },
+  restoreComparison: async (c) => {
+    set({ scenarios: c.scenarios.map(({ label, site, startUtc }) => ({ label, site, startUtc, key: `s${++scenarioSeq}` })),
+      comparison: null, shownScenario: null, durationDays: c.durationDays, panelAreaM2: c.panelAreaM2, panelEfficiency: c.panelEfficiency, workspace: 'compare' })
+    await get().compare()
   },
   // Mostrar un escenario en el terreno = evaluarlo como la simulación activa.
   showScenario: async (key) => {

@@ -145,7 +145,7 @@ function TourDialog({ index }: { index: number }) {
         m.setConfig({ startUtc: sc.startUtc, ...(sc.durationDays ? { durationDays: sc.durationDays } : {}) })
         return
       }
-      case 'run': void runSimulation(); return
+      case 'run': void runSimulation({ history: false }); return // el tour no llena History del usuario
       case 'play':
         if (!m.playing && m.evaluation && m.stepIndex >= m.evaluation.timeline.length - 1) m.setStep(0)
         m.setPlaying(!m.playing); return

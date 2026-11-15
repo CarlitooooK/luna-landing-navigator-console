@@ -133,7 +133,7 @@ La URL "Producción / Demo Pública" de `docs/07` sirve v1.1: ahí `/psr`, `/eph
 
 | Dato | Dónde vive | Notas |
 | --- | --- | --- |
-| Historial de corridas | `localStorage`, clave `lunar-navigator.history` (`useHistoryStore`) | Solo en este navegador. Máximo 100. Guarda sitio, fecha, duración, paso, `status`, `summary`, estrella y nota. No guarda el timeline |
+| Historial de corridas y comparaciones | `localStorage`, clave `lunar-navigator.history` (`useHistoryStore`, versión 2) | Solo en este navegador y en este origen: otro puerto u otro dominio tiene su propio historial. Se guarda solo al responder `/evaluate` (Simulate, Missions) o `/compare`. Máximo 100 corridas y 50 comparaciones. Corridas: sitio, fecha, duración, paso, paneles, `status`, `summary`, estrella y nota. Comparaciones: escenarios en orden con su `status` y `summary`, duración, paneles, estrella y nota. No guarda timelines |
 | Estado del tour | `localStorage`, clave `lunar-navigator.onboarding` (`useOnboardingStore`) | Solo `unseen`, `dismissed` o `completed` y la fecha. `?tour=0` en la URL suprime el autoarranque sin tocarlo |
 | Escenario del tour | `src/features/onboarding/steps.ts` (`TOUR_SCENARIO`) | `apollo-11`, `2026-12-13T00:00:00Z`, 14 días. Si `apollo-11` no está en `/sites`, el primer sitio con la fecha de Setup |
 | Catálogo de misiones | `src/features/missions/missions.ts` | 7 alunizajes reales (IM-1, IM-2, Chandrayaan-3, Chang'e 4, Apollo 17, 15 y 11) con fecha, hora, coordenadas y fuentes citadas. Las condiciones de luz **no** se guardan: salen de `/evaluate` al reproducir |

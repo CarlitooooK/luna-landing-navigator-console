@@ -3,7 +3,7 @@
 // la interfaz traduce cada `ActionId` a lo que hace (C2–C5). Se decide por estado, `code` y `level`, nunca por números.
 
 export type ActionId =
-  | 'retry-init' | 'focus-search' | 'go-missions' | 'run-again' | 'compare-dates' | 'save' | 'change-site'
+  | 'retry-init' | 'focus-search' | 'go-missions' | 'run-again' | 'compare-dates' | 'star' | 'change-site'
   | 'compare-sites' | 'shorten-mission' | 'try-again' | 'change-date' | 'fix-coordinates' | 'review-setup'
   | 'add-current' | 'add-plus-7' | 'open-in-simulate' | 'focus-scenario-site' | 'compare-again'
   | 'start-simulation' | 'open-as-simulation'
@@ -77,7 +77,7 @@ export function nextStepSimulate(s: SimulateState): NextStep | null {
   if (!s.site) return { id: 'no-site', tone: 'ink', text: 'Pick a landing site to begin: search the catalog or click the globe.', action: A('focus-search', 'Browse sites'), secondary: A('go-missions', 'Replay a real mission') }
   if (!s.verdict) return { id: 'ready', tone: 'ink', text: `Ready: ${s.site}, ${day(s.startUtc)}, ${s.durationDays} days. Run the simulation to see the verdict.` }
   if (s.stale) return { id: 'stale', tone: 'caution', text: 'The setup changed since the last run. Run the simulation again to update the results.', action: A('run-again', 'Run again') }
-  if (s.verdict.status === 'GO') return { id: 'go', tone: 'go', text: 'A good window. Save it, or check whether a launch slip would cost you.', action: A('compare-dates', 'Compare dates'), secondary: A('save', 'Save to history') }
+  if (s.verdict.status === 'GO') return { id: 'go', tone: 'go', text: 'A good window. Star it in History, or check whether a launch slip would cost you.', action: A('compare-dates', 'Compare dates'), secondary: A('star', 'Star this run') }
   const tone: Tone = s.verdict.status === 'NO-GO' ? 'nogo' : 'caution'
   const worst = s.verdict.checks ? worstCheck(s.verdict.checks) : null
   if (worst) {
@@ -119,8 +119,8 @@ export function nextStepCompare(s: CompareState): NextStep | null {
 }
 
 export function nextStepHistory(s: { runs: number; picked: boolean }): NextStep | null {
-  if (s.runs === 0) return { id: 'history:empty', tone: 'ink', text: 'Save a run from Simulate to keep it here.', action: A('start-simulation', 'Start a simulation') }
-  if (!s.picked) return { id: 'history:pick', tone: 'ink', text: 'Pick a run to see its summary.' }
+  if (s.runs === 0) return { id: 'history:empty', tone: 'ink', text: 'Every simulation and comparison you run is saved here.', action: A('start-simulation', 'Start a simulation') }
+  if (!s.picked) return { id: 'history:pick', tone: 'ink', text: 'Pick a run or a comparison to see its summary.' }
   return null
 }
 

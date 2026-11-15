@@ -45,7 +45,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Time step | Detailed | 15, 60 o 120 min | No |
 | Solar panels | Simple: resumen que se abre; Detailed: siempre abierto | Área (m²) y eficiencia (%) | No |
 | **Run simulation** | Ambos | `evaluate()` ([`01`](01-arquitectura.md)) | Sí: `/evaluate`, `/terrain/patch`, `/psr/nearby` |
-| Marcador (bookmark) | Ambos | Guarda la corrida en History (`useHistoryStore.save`), con sus paneles. Dice "Saved to history." o, si ya existe una igual (`isSameRun`), "Already in history." sin duplicarla. Deshabilitado si Results está desactualizado | No |
+| Estrella junto a "Run simulation" | Ambos | Marca o desmarca en History la corrida en pantalla (`useStarRun`). La corrida ya se guardó sola al responder (ver "History"); antes este botón la guardaba. Deshabilitado si Results está desactualizado | No |
 | "Last run took…" / "Computed in…" | Ambos | Simple: tiempo de las peticiones. Detailed: tiempo y número de muestras | — |
 
 Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CLICKED` / `GLOBE_CLICKED`), salvo durante la escena de alunizaje.
@@ -111,15 +111,20 @@ Mismos datos de `/compare` en los dos modos; cambia cuánto se muestra y cómo s
 
 | Control | Acción | Red |
 | --- | --- | --- |
-| Next step (estado vacío) | `nextStepHistory`: "Save a run from Simulate to keep it here." con "Start a simulation", que pasa a Simulate y enfoca el buscador de sitios | No |
-| Next step (sin corrida elegida) | "Pick a run to see its summary." en el panel derecho, sin acción | — |
-| Buscador y filtros (All, Starred, GO, NO-GO) | Filtra la lista local, agrupada por día UTC ("Today", "Yesterday", fecha) | No |
+| Qué se guarda | Solo, sin botón (pedido del usuario del 2026-11-15): cada "Run simulation" de Simulate (también "Run again" / "Try again" del Next step), cada "Replay" de Missions y cada comparación que responde, venga de "Compare scenarios", "Compare dates" o "Open in Compare". El tour no guarda. Repetir lo mismo (`isSameRun`, `isSameComparison`) no duplica: sube la entrada con la hora y el resultado nuevos y conserva estrella y nota | No |
+| Next step (estado vacío) | `nextStepHistory`: "Every simulation and comparison you run is saved here." con "Start a simulation", que pasa a Simulate y enfoca el buscador de sitios | No |
+| Next step (sin nada elegido) | "Pick a run or a comparison to see its summary." en el panel derecho, sin acción | — |
+| Lista | Corridas y comparaciones juntas, de la más nueva a la más vieja (`mergeEntries`), agrupadas por día UTC ("Today", "Yesterday", fecha). Una comparación lleva el ícono de Compare, sus sitios y cuántos escenarios | No |
+| Buscador y filtros (All, Starred, GO, NO-GO) | Filtra la lista local. GO y NO-GO solo muestran corridas: una comparación junta veredictos distintos | No |
 | Estrella | Marca o desmarca | No |
 | Note | Texto libre guardado al escribir | No |
 | "Open in Simulate" | Carga sitio, fecha, duración, paso y, si la corrida los guardó, los paneles; pasa a Simulate y evalúa | Sí, `evaluate()` |
 | "Duplicate and edit" | Carga los parámetros y pasa a Simulate sin evaluar | No |
 | "Add to Compare" | Agrega el escenario y pasa a Compare | No |
 | "Delete run" | Borra la corrida | No |
+| Detalle de una comparación | Duración, hora de guardado y, por escenario (A–E), sitio, veredicto, fecha y porcentajes de Sol y Tierra que respondió `/compare`. Estrella y nota como en una corrida | No |
+| "Open in Compare" | Carga los escenarios en el mismo orden, la duración y los paneles; pasa a Compare y vuelve a comparar (`restoreComparison`) | Sí, `compare()` |
+| "Delete comparison" | Borra la comparación | No |
 
 History no tiene píldoras de escena ni timeline.
 
