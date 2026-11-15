@@ -13,7 +13,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Origen de datos | `TopBar` › `DataSource` | "Connecting", "Live data", "Degraded" u "Offline". El `title` muestra la URL base |
 | Full screen / `F` | `TopBar` y `ConsoleShell` | `toggleFullscreen`. Oculta el rail, cambia la TopBar por una barra flotante (con Simple/Detailed, salvo en History, el origen de datos y Help) y pliega los paneles en tiras (ver [`01`](01-arquitectura.md)). `F` no actúa si el foco está en un campo ni con un `<dialog>` abierto (`hotkeyFor`, `help/shortcuts.ts`) |
 | Help / `?` | `help/HelpMenu.tsx` | Popover de 360 px con "Take the tour" (relanza el tour en el paso 2), el glosario por grupo (`glossaryGroups()`, el mismo texto de los "?", grupos plegables) y los atajos (`SHORTCUTS`). En la barra de pantalla completa el botón solo lleva el ícono y la tecla. `?` lo abre o lo cierra con la misma guarda que `F`; Esc y el clic fuera lo cierran (`popover="auto"`). No hace red |
-| Píldoras de escena | `simulate/SceneControls.tsx` | Arriba del área libre en Simulate, Compare y Missions (tabla abajo) |
+| Píldoras de escena | `simulate/SceneControls.tsx` | Arriba del área libre en Simulate, Compare y Missions (tabla abajo). Con el cursor encima 1 s, una burbuja explica qué muestra u oculta cada una (ver "Ayudas") |
 | Timeline | `timeline/TimelineDock.tsx` | Abajo en Simulate, Compare y Missions, solo con evaluación (tabla abajo) |
 
 ### Píldoras de escena
@@ -81,7 +81,7 @@ Cada cambio de paso actualiza Results, la luz de la escena local y el Sol y la T
 
 ### Ayudas "?"
 
-Cada término y número tiene un "?" (`features/help/Help.tsx`, textos en `features/help/glossary.ts`): campos de Setup, chip de veredicto, métricas de Results Simple y filas de Detailed, pistas del timeline y Horizon 360°, Simple/Detailed, origen de datos y Compare ("Scenarios" y "Rank by"). Abre con clic, toque, Enter o Espacio, y con hover de 150 ms si el puntero es fino; cierra con Esc o clic fuera. Dentro de un `Field`, el texto también se lee al enfocar el campo (`aria-describedby`). Las píldoras de escena no llevan "?": se explican en el glosario de Help y en el tour.
+Cada término y número tiene un "?" (`features/help/Help.tsx`, textos en `features/help/glossary.ts`): campos de Setup, chip de veredicto, métricas de Results Simple y filas de Detailed, pistas del timeline y Horizon 360°, Simple/Detailed, origen de datos y Compare ("Scenarios" y "Rank by"). Abre con clic, toque, Enter o Espacio, y con hover de 150 ms si el puntero es fino; cierra con Esc o clic fuera. Dentro de un `Field`, el texto también se lee al enfocar el campo (`aria-describedby`). Las píldoras de escena no llevan "?": cada píldora con acción abre una burbuja con su texto del glosario tras **1 s** con el cursor encima, o tras 1 s de foco con teclado (`Pill` con `tip`, `ui/TipButton.tsx`, texto por `tipOf()`). Es `popover="manual"`, así que no cierra el menú Help; se cierra con Esc, al hacer clic, al sacar el cursor o al perder el foco, y se puede pasar el cursor a la burbuja sin que se cierre. En pantallas táctiles no aparece. Las píldoras informativas (fase, aviso de Sol oculto, leyenda de pendiente) no tienen burbuja.
 
 ## Compare
 

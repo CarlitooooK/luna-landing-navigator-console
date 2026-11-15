@@ -64,6 +64,20 @@ export const GLOSSARY = {
   'landing-scene': { group: 'Views', term: 'Landing scene',
     text: 'An illustrative descent at this site. The path and the numbers on screen are not a physical simulation.' },
   'terrain-detail': { group: 'Views', term: 'Terrain detail', text: 'The local terrain patch served by the server, lit by the Sun at the selected time.' },
+  // Píldoras sobre la escena: la burbuja aparece tras 1 s con el cursor encima (Pill con `tip`)
+  recenter: { group: 'Views', term: 'Recenter',
+    text: 'Back to the whole Moon, keeping the selected site. The Moon turns slowly, so you can see which side is lit.' },
+  'map-grid': { group: 'Views', term: 'Grid', text: 'Shows or hides the latitude and longitude lines on the globe.' },
+  'map-elevation': { group: 'Views', term: 'Elevation',
+    text: 'Shows or hides a colour map of terrain height from LRO LOLA. It does not cover the area right around the south pole.' },
+  'psr-layer': { group: 'Views', term: 'Shadowed regions',
+    text: 'Shows or hides the permanently shadowed regions: ground near the south pole that never gets direct sunlight.' },
+  astronaut: { group: 'Views', term: 'Astronaut', text: 'Adds or removes the astronaut who appears next to the lander after touchdown in Landing scene.' },
+  'back-to-globe': { group: 'Views', term: 'Back to globe', text: 'Leaves the ground and flies back to orbit above the site.' },
+  'exit-scene': { group: 'Views', term: 'Exit scene', text: 'Stops the landing scene and flies back above the site.' },
+  'close-terrain': { group: 'Views', term: 'Back to globe (from Terrain detail)', text: 'Closes the local terrain and shows the global view again, as you left it.' },
+  vertical: { group: 'Views', term: 'Vertical exaggeration',
+    text: 'Stretches the terrain height so the relief is easier to see. Each press cycles ×1, ×2 and ×4; distances on the ground do not change.' },
 
   // Barra superior y Compare (design.md §2.5)
   'detail-level': { group: 'Views', term: 'Simple and Detailed',
@@ -77,6 +91,9 @@ export const GLOSSARY = {
 } as const satisfies Record<string, HelpEntry>
 
 export type HelpId = keyof typeof GLOSSARY
+
+/** Texto de la burbuja de una píldora de escena: el mismo del glosario, para que Help y la píldora no se contradigan. */
+export const tipOf = (id: HelpId, term?: string): { term: string; text: string } => ({ term: term ?? GLOSSARY[id].term, text: GLOSSARY[id].text })
 
 /** Entradas agrupadas en el orden de HELP_GROUPS, para el glosario de Help. */
 export function glossaryGroups(): { group: HelpGroup; entries: (HelpEntry & { id: HelpId })[] }[] {

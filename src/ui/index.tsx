@@ -5,10 +5,12 @@ import type { MissionStatus } from '@/types'
 import { SIGNAL, type Signal } from './signal'
 import { GLIDER, useGlider } from './motion'
 import { FieldContext } from './field'
+import { TipButton, type Tip } from './TipButton'
 
 export { SIGNAL, type Signal }
 export { Flow } from './Flow'
 export { HelpTip } from './HelpTip'
+export { TipButton, TIP_OPEN_MS, type Tip } from './TipButton'
 
 const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).join(' ')
 
@@ -188,6 +190,9 @@ export const Kbd = ({ children }: { children: ReactNode }) =>
 export const Skeleton = ({ className }: { className?: string }) =>
   <span aria-hidden className={cx('shimmer block rounded-full bg-white/8', className)} />
 
-export function Pill({ children, className, ...rest }: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return <button {...rest} className={cx('glass condense pointer-events-auto inline-flex h-9 items-center gap-2 rounded-full px-3 text-xs font-medium text-ink-2 hover:text-ink', className)}>{children}</button>
+/** Píldora sobre la escena. Con `tip`, una burbuja explica qué hace tras 1 s con el cursor encima (o con el foco). */
+export function Pill({ children, className, tip, ...rest }: ButtonHTMLAttributes<HTMLButtonElement> & { tip?: Tip }) {
+  const cls = cx('glass condense pointer-events-auto inline-flex h-9 items-center gap-2 rounded-full px-3 text-xs font-medium text-ink-2 hover:text-ink', className)
+  if (tip) return <TipButton {...rest} tip={tip} className={cls}>{children}</TipButton>
+  return <button {...rest} className={cls}>{children}</button>
 }
