@@ -44,6 +44,7 @@ Que cualquier persona entienda la consola y sus resultados sin ayuda externa. Es
 | D11 | Fecha por defecto de la consola | Pasa de 2026-12-01 a **2026-12-13 00:00 UTC**, igual que el tour (tarea A8) |
 | D12 | Nombre del campo de fecha | "Date" pasa a **"Landing date"** (y "Landing time (UTC)") para que no se confunda con el despegue desde la Tierra (tarea A1) |
 | D13 | Mock | **Ya no se usa** (2026-11-14). Desarrollo, pruebas manuales y capturas van contra el Backend oficial. El mock es sintético (el Sol nunca se pone) y da veredictos que no corresponden a la realidad |
+| D14 | Vista a ras de suelo | **"Horizon view" es la vista objetivo** y la que hay que refinar (2026-11-14). "Terrain detail" se queda como está, por si se necesita. Si van a ser dos vistas o una sola se pregunta en el handoff (`P-013`) |
 
 **Por qué se cambió la fecha por defecto (D11).** Con el Backend oficial y la configuración anterior (2026-12-01, 14 días, paso de 60 min), 11 de los 13 sitios del catálogo daban NO-GO y los otros dos, CAUTION. Esa fecha venía de `docs/07` del handoff como "valor de prueba" (`useMissionStore.ts:90`) y cae de noche o con poca luz en casi todos los sitios.
 
@@ -75,7 +76,7 @@ Se propuso y se retiró el mismo día. El recorrido usó un proceso del mock que
 
 ## Anotado fuera de esta spec
 
-- **"Horizon view" ya existe** (consola PR `#9`): cámara a ras de suelo con el horizonte real y el Sol y la Tierra del timeline. Se probó el 2026-11-14 (S-05 en `audit.md`): coincide con los datos, pero muestra la luz y el horizonte, no las pendientes del lugar. **Pendiente de decisión del usuario:** si con "Horizon view" basta o si "Terrain detail" sigue siendo una vista aparte para el terreno cercano.
+- **"Horizon view" ya existe** (consola PR `#9`): cámara a ras de suelo con el horizonte real y el Sol y la Tierra del timeline. Se probó el 2026-11-14 (S-05 en `audit.md`): coincide con los datos, pero muestra la luz y el horizonte, no las pendientes del lugar. **Decisión (D14):** "Horizon view" es el objetivo; "Terrain detail" no se toca por ahora. La pregunta de si se unifican va al handoff como `P-013`.
 - **"Terrain detail" debe usar la vista a ras de suelo del globo** (decisión del usuario, 2026-11-14). La escena local de Three.js no sirve para juzgar el terreno; la de alunizaje del globo, sí. Es un cambio de render que toca la consola, el globo y el backend (teselas de 40 m), así que no entra en esta spec. Está anotado en `docs/06-limitaciones-y-pendientes.md`, tabla "Render y calidad visual". Mientras no se haga, la ayuda `terrain-detail` (`design.md` §2.4) describe la escena que exista en ese momento.
 
 ## Verificación hecha y no hecha
