@@ -101,7 +101,9 @@ function TourDialog({ index }: { index: number }) {
   const [pos, setPos] = useState<{ top: number; left: number } | null>(null)
   const reduced = prefersReducedMotion()
 
-  useEffect(() => {
+  // useLayoutEffect y antes del que coloca la tarjeta: con el <dialog> cerrado la tarjeta mide 0 × 0 y la
+  // invitación (sin ancla, sin nada que la vuelva a medir) quedaba con la esquina en el centro de la pantalla.
+  useLayoutEffect(() => {
     const d = dialog.current!
     if (!d.open) d.showModal()
     return () => d.close()
