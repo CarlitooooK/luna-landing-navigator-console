@@ -65,10 +65,10 @@ Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CL
 | Control | Simple | Detailed |
 | --- | --- | --- |
 | Play / Pause | Avanza 4 pasos cada 100 ms. Al final se detiene; si está al final, reinicia | Igual, con velocidad 1×, 4× o 12× |
-| Reloj | "Day N of M" y fecha UTC | "T+N h" y fecha UTC |
+| Reloj | "Day N of M" y fecha UTC. El eje usa la misma regla (`dayOf`): la hora 72 es "Day 4" en los dos | "T+N h" y fecha UTC |
 | Pistas | Sunlight, Earth in view | Sunlight, Earth link, Both (con %) y banderas de Sunset / Earthset |
-| Scrubber | Arrastre o flechas ←/→ sobre las pistas (`role="slider"`) | Igual |
-| Horizon 360° | — | Silueta de `horizon_profile` con el Sol y la Tierra del paso actual |
+| Scrubber | Arrastre sobre las pistas (`role="slider"`). Teclado (`sliderStep`): ←/→ un paso, PageUp/PageDown un día, Home/End los extremos. `aria-valuetext` dice "Day N of M, fecha" | Igual; `aria-valuetext` dice "T+N h, fecha" |
+| Horizon 360° | — | Silueta de `horizon_profile` con el Sol y la Tierra del paso actual, y debajo el mismo scrubber sin las pistas |
 
 Cada cambio de paso actualiza Results, la luz de la escena local y el Sol y la Tierra del globo. Sin red.
 

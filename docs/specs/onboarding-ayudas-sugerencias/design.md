@@ -237,7 +237,7 @@ El texto se decide en este orden, mirando primero `timeline[0]` y después el re
 | 3 | Visible en `timeline[0]` y `hours_to_next_*` es un número | "{n} hours until sunset" | "{n} hours until Earth sets" |
 | 4 | Visible en `timeline[0]` y `hours_to_next_*` es `null` | "No sunset in this window" | "Earth stays in view" |
 
-`h` son las horas entre `timeline[0].timestamp_utc` y ese primer punto. Es leer el timeline que manda el backend, no calcular física. La misma regla aplica a la fila "Next set" de Detailed: "{h} h", "rise {h} h", "never" o "no set". La implementación es `src/core/utils/countdown.ts`.
+`h` son las horas entre `timeline[0].timestamp_utc` y ese primer punto. Es leer el timeline que manda el backend, no calcular física. La misma regla aplica a la fila "Next set" de Detailed: "{h} h", "rise {h}h" (sin espacio, para caber en la columna de 78 px), "never" o "no set". La implementación es `src/core/utils/countdown.ts`.
 
 **Porcentaje redondeado.** "Sunlit 0% of the mission" con el Sol arriba una hora (Shackleton Rim, 0.3 %) parece una contradicción. Cuando el porcentaje es mayor que 0 y menor que 1, se muestra "<1%".
 

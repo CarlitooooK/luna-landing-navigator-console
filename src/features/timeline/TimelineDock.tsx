@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useRef, useState, type PointerEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { Pause, Play } from 'lucide-react'
 import { useMissionStore } from '@/core/store/useMissionStore'
-import { bothRuns, coverage, earthRuns, stepHours, sunRuns, type Run } from '@/core/utils/timeline'
+import { bothRuns, coverage, dayOf, earthRuns, sliderStep, stepHours, sunRuns, type Run } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Panel, SIGNAL, Segmented, type Signal } from '@/ui'
 import { HorizonChart } from './HorizonChart'
@@ -58,13 +58,31 @@ export function TimelineDock() {
   const hrs = stepHours(t)
   const totalH = n * hrs
   const p = t[stepIndex]
-  const day = Math.floor((stepIndex * hrs) / 24) + 1
+  const day = dayOf(stepIndex * hrs)
   const totalDays = Math.round(totalH / 24)
   const m = evaluation.summary
   const scrub = (e: PointerEvent<HTMLDivElement>) => {
     const r = lane.current!.getBoundingClientRect()
     setStep(Math.max(0, Math.min(n - 1, Math.round(((e.clientX - r.left) / r.width) * (n - 1)))))
   }
+  // Un solo scrubber para las dos pestañas (tarea A5): flechas, PageUp/PageDown (un día), Home y End.
+  const stamp = formatUtc(p.timestamp_utc)
+  const slider = {
+    ref: lane, role: 'slider', tabIndex: 0, 'aria-label': 'Mission time', 'aria-valuemin': 0, 'aria-valuemax': n - 1, 'aria-valuenow': stepIndex,
+    'aria-valuetext': detailed ? `T+${Math.round(stepIndex * hrs)} h, ${stamp}` : `Day ${day} of ${totalDays}, ${stamp}`,
+    onPointerDown: (e: PointerEvent<HTMLDivElement>) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e) },
+    onPointerMove: (e: PointerEvent<HTMLDivElement>) => { if (e.buttons) scrub(e) },
+    onKeyDown: (e: KeyboardEvent<HTMLDivElement>) => {
+      const next = sliderStep(e.key, stepIndex, n, 24 / hrs)
+      if (next == null) return
+      e.preventDefault()
+      setStep(next)
+    },
+  } as const
+  const playhead = (
+    <span className={`glow absolute -top-1 bottom-0 w-0.5 -translate-x-1/2 rounded-full bg-ink text-ink ${playing ? 'breathe' : ''}`}
+      style={{ left: `${(stepIndex / (n - 1)) * 100}%`, transition: playing ? 'left 100ms linear' : 'left 240ms var(--ease-out)' }} />
+  )
   const rows: { label: string; pct: number; signal: Signal; runs: Run[] }[] = [
     { label: 'Sunlight', pct: m.sun_visible_pct, signal: 'sun', runs: tracks.sun },
     { label: detailed ? 'Earth link' : 'Earth in view', pct: m.earth_visible_pct, signal: 'earth', runs: tracks.earth },
@@ -101,7 +119,16 @@ export function TimelineDock() {
             </div>}
       </div>
 
-      {tab === 'horizon' && detailed ? <HorizonChart profile={evaluation.horizon_profile} point={p} /> : (
+      {tab === 'horizon' && detailed ? (
+        <div className="flex flex-col gap-2">
+          <HorizonChart profile={evaluation.horizon_profile} point={p} />
+          {/* Mismo scrubber que en la pestaña Timeline, sin las pistas */}
+          <div className="relative h-4">
+            <span aria-hidden className="absolute inset-x-0 top-1.5 h-1 rounded-full bg-white/10" />
+            <div {...slider} className="absolute inset-0 cursor-ew-resize touch-none">{playhead}</div>
+          </div>
+        </div>
+      ) : (
         <div className="relative pt-5">
           {events.map((e) => {
             // En la mitad derecha la bandera crece hacia la izquierda para no salirse del dock
@@ -124,24 +151,11 @@ export function TimelineDock() {
             <span />
             <div className="relative h-3.5">
               {ticks.map((h) => <span key={h} className="tnum absolute font-mono text-[10px] text-ink-3" style={{ left: `${(h / totalH) * 100}%` }}>
-                {detailed ? (h === 0 ? 'T+0' : `${h} h`) : (h === 0 ? 'Landing' : `Day ${h / 24}`)}</span>)}
+                {detailed ? (h === 0 ? 'T+0' : `${h} h`) : (h === 0 ? 'Landing' : `Day ${dayOf(h)}`)}</span>)}
             </div>
           </div>
           {/* Zona de arrastre + playhead sobre las pistas */}
-          <div ref={lane} role="slider" tabIndex={0} aria-label="Mission time" aria-valuemin={0} aria-valuemax={n - 1} aria-valuenow={stepIndex}
-            aria-valuetext={formatUtc(p.timestamp_utc)}
-            className="absolute top-4 bottom-4 left-[116px] right-0 cursor-ew-resize touch-none"
-            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); scrub(e) }}
-            onPointerMove={(e) => { if (e.buttons) scrub(e) }}
-            onKeyDown={(e) => {
-              if (e.key === 'ArrowRight') setStep(Math.min(n - 1, stepIndex + 1))
-              else if (e.key === 'ArrowLeft') setStep(Math.max(0, stepIndex - 1))
-              else return
-              e.preventDefault()
-            }}>
-            <span className={`glow absolute -top-1 bottom-0 w-0.5 -translate-x-1/2 rounded-full bg-ink text-ink ${playing ? 'breathe' : ''}`}
-              style={{ left: `${(stepIndex / (n - 1)) * 100}%`, transition: playing ? 'left 100ms linear' : 'left 240ms var(--ease-out)' }} />
-          </div>
+          <div {...slider} className="absolute top-4 bottom-4 left-[116px] right-0 cursor-ew-resize touch-none">{playhead}</div>
         </div>
       )}
     </Panel>

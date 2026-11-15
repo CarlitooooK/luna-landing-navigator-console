@@ -44,7 +44,7 @@ function Countdown({ icon, signal, label, body, c, note, share }: {
 
 /** Celda compacta de "Next set" en Detailed. */
 const nextSetCell = (c: CountdownT) =>
-  c.kind === 'until-set' ? hoursShort(c.hours) : c.kind === 'until-rise' ? `rise ${hoursShort(c.hours)}` : c.kind === 'never' ? 'never' : c.kind === 'always' ? 'no set' : 'rise later'
+  c.kind === 'until-set' ? hoursShort(c.hours) : c.kind === 'until-rise' ? `rise ${Math.round(c.hours)}h` : c.kind === 'never' ? 'never' : c.kind === 'always' ? 'no set' : 'rise later'
 
 function Fact({ icon, signal, label, value, unit, note }: { icon: LucideIcon; signal: Signal; label: string; value: string; unit: string; note: string }) {
   return (
