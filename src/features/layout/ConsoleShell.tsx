@@ -64,7 +64,10 @@ export function ConsoleShell({ slots }: { slots: WorkspaceSlots }) {
             <div className="relative flex min-w-0 flex-1 flex-col justify-between gap-4">
               {/* self-start: el ancla del tour mide solo las píldoras, no todo el ancho */}
               <div data-tour="scene" className="flex flex-wrap items-start gap-2 self-start">{slots.top}</div>
-              <div className="peek flex justify-center [view-transition-name:vt-dock]">{slots.bottom}</div>
+              {/* items-end: al desplegarse en pantalla completa el timeline crece hacia arriba desde el borde inferior.
+                  Sin esto quedaba pegado arriba del hueco y, mientras animaba su alto, el borde inferior subía, dejaba
+                  el cursor fuera y se plegaba otra vez (abrir y cerrar en bucle) */}
+              <div className="peek flex items-end justify-center [view-transition-name:vt-dock]">{slots.bottom}</div>
             </div>
             {slots.right && <div className="peek flex w-[300px] shrink-0 flex-col gap-3 overflow-y-auto [--from-x:var(--drift)] [view-transition-name:vt-right]">{slots.right}</div>}
             {slots.overlay && <div className="peek contents">{slots.overlay}</div>}
