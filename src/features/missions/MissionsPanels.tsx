@@ -35,7 +35,8 @@ export function MissionsList() {
       <Input icon={Search} placeholder="Search missions or agencies" aria-label="Search missions" value={q} onChange={(e) => setQ(e.target.value)} />
       <Segmented size="sm" label="Region" value={region} onChange={setRegion}
         options={[{ value: 'all', label: 'All' }, { value: 'south-pole', label: 'South pole' }, { value: 'near-side', label: 'Near side' }, { value: 'far-side', label: 'Far side' }]} />
-      <ul className="flex flex-col gap-1">
+      {/* La lista es la única zona que se desplaza: con poco alto, buscador y filtros no se aplastan y la nota no se sale de la tarjeta */}
+      <ul className="-mx-1 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-1 py-px">
         {list.map((m) => {
           const on = m.id === picked
           return (
@@ -53,7 +54,7 @@ export function MissionsList() {
         })}
         {list.length === 0 && <li className="p-2 text-xs text-ink-3">No mission matches that search.</li>}
       </ul>
-      <p className="mt-auto flex gap-2 text-[11px] text-ink-3"><Info size={13} className="mt-px shrink-0" aria-hidden />
+      <p className="flex shrink-0 gap-2 text-[11px] text-ink-3"><Info size={13} className="mt-px shrink-0" aria-hidden />
         Times and sites from public mission records, cited on each mission. Outside -80° the terrain comes from the global map at lower resolution.</p>
     </Panel>
   )

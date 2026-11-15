@@ -43,7 +43,7 @@ export function HelpMenu({ compact }: { compact?: boolean }) {
         <CircleHelp size={15} aria-hidden />{!compact && 'Help'}<Kbd>?</Kbd>
       </button>
       <div ref={menu} id={`${id}-menu`} popover="auto" tabIndex={-1} role="dialog" aria-labelledby={`${id}-title`}
-        className="glass glass-strong drip fixed m-0 max-h-[min(560px,calc(100vh-96px))] w-[360px] overflow-y-auto rounded-[20px] p-4 text-left outline-none [inset:auto]">
+        className="glass glass-strong drip fixed m-0 max-h-[min(560px,calc(100vh-96px))] w-[360px] overflow-y-auto rounded-[20px] p-4 text-left font-normal whitespace-normal outline-none [inset:auto]">
         {/* Sin `flex` en el popover: una clase display le gana al `display: none` del navegador y se vería cerrado */}
         <div className="flex flex-col gap-4">
         <h2 id={`${id}-title`} className="sr-only">Help</h2>
