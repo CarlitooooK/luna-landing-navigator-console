@@ -32,7 +32,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 
 | Control | Modo | Acción | Red |
 | --- | --- | --- | --- |
-| "Search N sites" | Simple | Filtra `/sites` por nombre o categoría (máx. 6) y `select()` | No. En el globo: `SELECT_SITE` |
+| "Search N sites" | Simple | Filtra `/sites` por nombre o categoría (máx. 6) y `select()`. Al enfocarlo muestra los primeros seis. Teclado (combobox de ARIA APG): ↑ ↓ Home End recorren las opciones, Enter elige, Esc cierra la lista y, ya cerrada, borra el texto. Se cierra cuando el foco sale del buscador (`combobox.ts`) | No. En el globo: `SELECT_SITE` |
 | Tarjeta del sitio | Simple | Muestra nombre, categoría y coordenadas (`fmtCoord`, longitud 0–360 E) | — |
 | Catalog / Custom | Detailed | Elige entre selector de sitios y coordenadas libres | — |
 | Selector "Site" | Detailed › Catalog | `select()` | No |

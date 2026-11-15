@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type FocusEvent, type KeyboardEvent } from 'react'
 import { Bookmark, ChevronRight, MapPin, Play, Search, Zap } from 'lucide-react'
 import { STEP_OPTIONS, useMissionStore, type SelectedSite } from '@/core/store/useMissionStore'
 import { useHistoryStore } from '@/core/store/useHistoryStore'
@@ -6,6 +6,7 @@ import { toUtcIso } from '@/core/utils/time'
 import { fmtCoord } from '@/core/utils/coordinates'
 import { Button, Divider, Field, IconButton, IconWell, Input, Panel, SectionTitle, Segmented } from '@/ui'
 import type { Site } from '@/types'
+import { isComboboxKey, moveActive, type ComboboxKey } from './combobox'
 
 const DURATIONS_SIMPLE = [{ value: 7, label: '7 days' }, { value: 14, label: '14 days' }, { value: 29.5, label: 'Full cycle' }]
 const DURATIONS_DETAILED = [{ value: 7, label: '7 d' }, { value: 14, label: '14 d' }, { value: 29.5, label: '29.5 d' }]
@@ -21,25 +22,46 @@ function SiteSearch() {
   const select = useMissionStore((s) => s.select)
   const [q, setQ] = useState('')
   const [open, setOpen] = useState(false)
+  const [active, setActive] = useState(-1)
   const matches = useMemo(() => {
     const k = q.trim().toLowerCase()
     return sites.filter((s) => !k || s.name.toLowerCase().includes(k) || s.category.toLowerCase().includes(k)).slice(0, 6)
   }, [q, sites])
+  const shown = open && matches.length > 0
+  const close = () => { setOpen(false); setActive(-1) }
+  const choose = (s: Site) => { select(toSelected(s)); setQ(''); close() }
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (isComboboxKey(e.key)) {
+      // Home y End solo navegan la lista si está abierta; si no, mueven el cursor del texto.
+      if (!shown && (e.key === 'Home' || e.key === 'End')) return
+      e.preventDefault()
+      setOpen(true)
+      setActive((i) => moveActive(i, e.key as ComboboxKey, matches.length))
+    } else if (e.key === 'Enter' && shown && active >= 0 && matches[active]) {
+      e.preventDefault()
+      choose(matches[active])
+    } else if (e.key === 'Escape') {
+      if (shown) { e.preventDefault(); close() } else if (q) { e.preventDefault(); setQ('') }
+    }
+  }
+  // Se cierra cuando el foco sale del buscador y su lista, no por tiempo (el clic en una opción ya no compite con el blur).
+  const onBlur = (e: FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close()
+  }
   return (
-    <div className="relative">
+    <div className="relative" onBlur={onBlur}>
       <Input icon={Search} placeholder={`Search ${sites.length || ''} sites`.replace('  ', ' ')} value={q}
-        role="combobox" aria-expanded={open} aria-controls="site-results" aria-label="Search landing sites"
-        onChange={(e) => { setQ(e.target.value); setOpen(true) }} onFocus={() => setOpen(true)}
-        onBlur={() => setTimeout(() => setOpen(false), 120)} />
-      {open && matches.length > 0 && (
-        <ul id="site-results" role="listbox" className="glass glass-strong drip absolute inset-x-0 top-12 z-20 flex flex-col gap-0.5 rounded-xl p-1.5">
-          {matches.map((s) => (
-            <li key={s.id} role="option" aria-selected={false}>
-              <button onMouseDown={(e) => e.preventDefault()} onClick={() => { select(toSelected(s)); setQ(''); setOpen(false) }}
-                className="flex w-full flex-col items-start rounded-lg px-2.5 py-1.5 text-left transition-[background-color,translate] duration-200 hover:translate-x-0.5 hover:bg-white/8">
-                <span className="text-[13px] font-bold">{s.name}</span>
-                <span className="text-xs text-ink-3">{s.category}</span>
-              </button>
+        role="combobox" aria-expanded={shown} aria-controls="site-results" aria-autocomplete="list" aria-label="Search landing sites"
+        aria-activedescendant={shown && active >= 0 ? `site-option-${active}` : undefined}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(-1) }} onFocus={() => setOpen(true)} onKeyDown={onKeyDown} />
+      {shown && (
+        <ul id="site-results" role="listbox" aria-label="Landing sites" className="glass glass-strong drip absolute inset-x-0 top-12 z-20 flex flex-col gap-0.5 rounded-xl p-1.5">
+          {matches.map((s, i) => (
+            <li key={s.id} id={`site-option-${i}`} role="option" aria-selected={i === active}
+              onMouseDown={(e) => e.preventDefault()} onClick={() => choose(s)} onMouseMove={() => setActive(i)}
+              className={`flex w-full cursor-pointer flex-col items-start rounded-lg px-2.5 py-1.5 text-left transition-[background-color,translate] duration-200 ${i === active ? 'translate-x-0.5 bg-white/8' : ''}`}>
+              <span className="text-[13px] font-bold">{s.name}</span>
+              <span className="text-xs text-ink-3">{s.category}</span>
             </li>
           ))}
         </ul>
