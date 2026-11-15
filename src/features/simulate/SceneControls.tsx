@@ -1,4 +1,4 @@
-import { Clapperboard, Globe2, LogOut, Moon, Mountain, Sunrise, User } from 'lucide-react'
+import { Clapperboard, Globe2, Grid3x3, Layers, LocateFixed, LogOut, Moon, Mountain, Sunrise, User } from 'lucide-react'
 import { GLOBE_URL } from '@/core/config'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { useGlobeStore } from '@/core/store/useGlobeStore'
@@ -55,6 +55,33 @@ function SiteControls() {
 }
 
 /**
+ * Controles del globo en sí, con o sin simulación: recentrar (vista global sin perder el sitio, y la cámara gira
+ * sola) y las capas opcionales. Las capas solo en órbita: a ras de suelo la rejilla y el color no aportan.
+ */
+function MapControls({ orbit }: { orbit: boolean }) {
+  const recenter = useGlobeStore((s) => s.recenter)
+  const layers = useGlobeStore((s) => s.layers)
+  const toggle = useGlobeStore((s) => s.toggleLayer)
+  return (
+    <>
+      <Pill onClick={recenter} aria-label="Recenter: back to the whole Moon, keeping the selected site">
+        <LocateFixed size={14} aria-hidden />Recenter
+      </Pill>
+      {orbit && <>
+        <Pill onClick={() => toggle('grid')} aria-pressed={layers.grid}
+          aria-label={`Latitude and longitude grid: ${layers.grid ? 'on' : 'off'}`}>
+          <Grid3x3 size={14} aria-hidden />Grid {layers.grid ? 'on' : 'off'}
+        </Pill>
+        <Pill onClick={() => toggle('elevation')} aria-pressed={layers.elevation}
+          aria-label={`Elevation colour map: ${layers.elevation ? 'on' : 'off'}`}>
+          <Layers size={14} aria-hidden />Elevation {layers.elevation ? 'on' : 'off'}
+        </Pill>
+      </>}
+    </>
+  )
+}
+
+/**
  * Controles discretos sobre el render (docs/11 §6a). La simulación vive en el globo: la escena de
  * alunizaje parte de la vista actual sin cambiar de motor. "Terrain detail" abre la escena local del
  * parche de `/terrain/patch` encima del globo, sin desmontarlo.
@@ -101,9 +128,16 @@ export function SceneControls() {
       <Moon size={14} aria-hidden />Shadowed regions {showPsr ? 'on' : 'off'}
     </Pill>
   )
-  if (!hasEvaluation) return <>{psrPill}{landing.error && <Pill className="pointer-events-none" aria-live="polite">{landing.error}</Pill>}</>
+  if (!hasEvaluation) return (
+    <>
+      {globeReady && <MapControls orbit />}
+      {psrPill}
+      {landing.error && <Pill className="pointer-events-none" aria-live="polite">{landing.error}</Pill>}
+    </>
+  )
   return (
     <>
+      {globeReady && <MapControls orbit={!horizon.requested} />}
       {/* Vista de horizonte: el Sol y la Tierra del timeline contra la silueta real del terreno (docs/05 §5.2) */}
       {globeReady && !horizon.requested && (
         <Pill onClick={requestHorizon} aria-label="See the Sun and Earth over the local horizon">

@@ -78,9 +78,15 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
       const s = mission().selected
       if (s) post({ type: 'SELECT_SITE', payload: { id: s.id, lat: s.lat, lon: s.lon, label: s.label } })
     }
+    // Rejilla y elevación en color: el globo ya las tiene; la consola solo las enciende o apaga
+    const sendLayers = () => {
+      const { grid, elevation } = globe().layers
+      post({ type: 'SET_CONFIG', payload: { showGrid: grid, layers: { lolaShade: elevation } } })
+    }
     const pushAll = () => {
       post({ type: 'SET_CONFIG', payload: { terrainTilesUrl: `${API_BASE.replace(/\/+$/, '')}/terrain/tiles` } })
       sendMode()
+      sendLayers()
       sendSites()
       sendSky()
       if (mission().viewMode === 'site') post({ type: 'SET_PAUSED', payload: { paused: true } })
@@ -134,11 +140,14 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
       // horizonte al sitio nuevo en vez de volver a la esfera.
       // Repetir la corrida en el mismo sitio (otra fecha) no repite el vuelo de 2,5 s
       const moved = !!s.evaluation && (!p.evaluation || p.evaluation.site.lat !== s.evaluation.site.lat || p.evaluation.site.lon !== s.evaluation.site.lon)
-      const reran = s.evaluation !== p.evaluation && s.evaluation !== null && moved
+      const fresh = s.evaluation !== p.evaluation && s.evaluation !== null
+      const reran = fresh && moved
       const inScene = globe().landing.requested
+      // "Run simulation" en Simulate y el replay de Missions piden Horizon view al llegar la evaluación (armHorizon)
+      const toHorizon = fresh && globe().horizonNext
       // Elegir o evaluar otro lugar durante la escena de alunizaje la cierra: el globo vuelve a encuadrar el nuevo.
       // History no tiene botones de escena, así que entrar ahí también cierra la escena y el horizonte.
-      if (inScene && ((s.selected !== p.selected && s.selected && !samePlace(s.selected, p.selected)) || reran)) { globe().clearLanding(); return }
+      if (inScene && ((s.selected !== p.selected && s.selected && !samePlace(s.selected, p.selected)) || reran)) { globe().clearLanding(); if (!toHorizon) return }
       if (s.workspace !== p.workspace && s.workspace === 'history') { globe().clearLanding(); globe().clearHorizon() }
       // "Terrain detail" tapa el globo: se deja de dibujar debajo (tras el fundido de 500 ms) y se reanuda al volver
       if (s.viewMode !== p.viewMode) {
@@ -146,19 +155,27 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
         if (s.viewMode === 'site') pauseTimer = window.setTimeout(() => post({ type: 'SET_PAUSED', payload: { paused: true } }), 600)
         else post({ type: 'SET_PAUSED', payload: { paused: false } })
       }
-      if (globe().horizon.requested && !inScene) {
+      if (toHorizon) {
+        globe().armHorizon(false)
+        // Ya en el suelo: el horizonte pasa al sitio nuevo. Si no, se baja al suelo en vez de volar al sitio.
+        if (globe().horizon.requested) { if (reran) startHorizon() } else globe().requestHorizon()
+      } else if (globe().horizon.requested && !inScene) {
         if (reran) startHorizon()
       } else if (((s.selected !== p.selected && s.selected) || reran) && !inScene) flyToSelected()
     })
     const unsubGlobe = useGlobeStore.subscribe((s, p) => {
       if (!ready) return
       if (s.showPsr !== p.showPsr) sendPsr()
+      // Recentrar: el globo cierra la escena y el horizonte por su cuenta, así que no se mandan sus salidas
+      if (s.recenterSeq !== p.recenterSeq) { post({ type: 'RECENTER' }); return }
+      if (s.layers !== p.layers) sendLayers()
+      // Salir de la escena (o un error): el globo limpia módulo y polvo y vuelve a encuadrar el sitio, salvo que
+      // en el mismo cambio se pida el horizonte (el vuelo al sitio lo cancelaría). Va antes de abrir el horizonte.
+      if (!s.landing.requested && p.landing.requested) { post({ type: 'STOP_LANDING_SCENE' }); if (!s.horizon.requested) flyToSelected() }
       if (s.landing.requested && !p.landing.requested) startLanding()
       if (s.horizon.requested && !p.horizon.requested) startHorizon()
       // Salir del horizonte: el globo vuela de vuelta a la esfera sobre el sitio (si no es porque empezó la escena)
       if (!s.horizon.requested && p.horizon.requested && !s.landing.requested) post({ type: 'EXIT_HORIZON' })
-      // Salir de la escena (o un error): el globo limpia módulo y polvo y vuelve a encuadrar el sitio
-      if (!s.landing.requested && p.landing.requested) { post({ type: 'STOP_LANDING_SCENE' }); flyToSelected() }
     })
 
     return () => {

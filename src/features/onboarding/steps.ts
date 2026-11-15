@@ -33,6 +33,8 @@ export interface TourInput {
   terrain: boolean
   viewMode: 'globe' | 'site'
   detail: 'simple' | 'detailed'
+  /** Horizon view abierta (la abre "Run simulation" al terminar). */
+  horizon?: boolean
 }
 
 /**
@@ -70,6 +72,9 @@ function sceneStep(st: TourInput): TourStep | null {
   if (!st.globe) return { ...base, text: st.viewMode === 'site'
     ? 'Global view goes back from the local terrain to the whole Moon.'
     : 'Terrain detail opens the local terrain from the server, lit by the Sun at the selected time.' }
+  // "Run simulation" ya bajó al suelo: el paso describe lo que se ve, sin botón para volver a pedirlo
+  if (st.horizon) return { ...base,
+    text: 'You are on the ground now: watch the Sun and Earth rise and set behind the real skyline as you move the timeline. Back to globe returns to orbit, Landing scene plays an illustrative descent and Terrain detail opens the local terrain from the server.' }
   return { ...base, action: { id: 'horizon', label: 'Horizon view' },
     text: 'Horizon view puts you on the ground: watch the Sun and Earth rise and set behind the real skyline as you move the timeline. Landing scene plays an illustrative descent. Terrain detail opens the local terrain from the server.' }
 }

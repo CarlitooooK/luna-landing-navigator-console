@@ -10,6 +10,7 @@ import { isComboboxKey, moveActive, type ComboboxKey } from './combobox'
 import { useSaveRun } from './useSaveRun'
 import { useSimulateStep } from '@/features/suggest/useSimulateStep'
 import { Help } from '@/features/help/Help'
+import { runSimulation } from './runSimulation'
 
 const DURATIONS_SIMPLE = [{ value: 7, label: '7 days' }, { value: 14, label: '14 days' }, { value: 29.5, label: 'Full cycle' }]
 const DURATIONS_DETAILED = [{ value: 7, label: '7 d' }, { value: 14, label: '14 d' }, { value: 29.5, label: '29.5 d' }]
@@ -181,7 +182,7 @@ function SolarPanels({ detailed }: { detailed: boolean }) {
 }
 
 function RunBar({ detailed }: { detailed: boolean }) {
-  const { selected, loading, evaluate, lastRunMs, evaluation } = useMissionStore()
+  const { selected, loading, lastRunMs, evaluation } = useMissionStore()
   const { canSave, stale, saved, save: onSave, message } = useSaveRun()
   // Una sola tecla luminosa (design.md §3.1): con resultados vigentes y una próxima acción, Run simulation baja a secundario.
   const { primaryIsStep } = useSimulateStep()
@@ -189,7 +190,7 @@ function RunBar({ detailed }: { detailed: boolean }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
-        <Button variant={primaryIsStep ? 'secondary' : 'primary'} icon={Play} iconFill className={loading ? 'flex-1 shimmer' : 'flex-1'} disabled={!selected || loading} onClick={() => void evaluate()}>
+        <Button variant={primaryIsStep ? 'secondary' : 'primary'} icon={Play} iconFill className={loading ? 'flex-1 shimmer' : 'flex-1'} disabled={!selected || loading} onClick={() => void runSimulation()}>
           {loading ? 'Calculating…' : 'Run simulation'}
         </Button>
         <IconButton icon={saved === 'saved' ? BookmarkCheck : Bookmark} label={stale ? 'Run the simulation again to save it' : 'Save to history'} disabled={!canSave}

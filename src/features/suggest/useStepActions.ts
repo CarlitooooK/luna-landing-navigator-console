@@ -4,6 +4,7 @@ import { useMissionStore } from '@/core/store/useMissionStore'
 import { useSaveRun } from '@/features/simulate/useSaveRun'
 import { withViewTransition } from '@/ui/motion'
 import type { ActionId } from './nextStep'
+import { runSimulation } from '@/features/simulate/runSimulation'
 
 /** Enfoca el primer elemento que exista. Reintenta unas veces por si React todavía no pintó el cambio de pantalla. */
 export function focusLater(...selectors: string[]) {
@@ -32,7 +33,7 @@ export function useStepActions(): (id: ActionId) => void {
         if (st.workspace !== 'simulate') withViewTransition(() => st.setWorkspace('simulate'))
         focusLater(...SITE_PICKER); break
       case 'go-missions': withViewTransition(() => st.setWorkspace('missions')); break
-      case 'run-again': case 'try-again': void st.evaluate(); break
+      case 'run-again': case 'try-again': void runSimulation(); break
       case 'compare-dates': withViewTransition(() => { void st.compareDates() }); break
       case 'compare-sites': withViewTransition(() => st.compareSites()); focusLater('select[aria-label="Scenario site"]'); break
       case 'save': save(); break
