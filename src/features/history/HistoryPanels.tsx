@@ -3,9 +3,13 @@ import { AlertTriangle, Check, Columns2, Copy, Globe2, History as HistoryIcon, P
 import { withViewTransition } from '@/ui/motion'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { groupByDay, useHistoryStore, type HistoryRun } from '@/core/store/useHistoryStore'
-import { hoursShort, pct } from '@/core/utils/timeline'
+import { setCell } from '@/core/utils/countdown'
+import { pct } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Button, Divider, Input, Panel, Segmented, StatusChip } from '@/ui'
+import { NextStepBlock } from '@/features/suggest/NextStepBlock'
+import { nextStepHistory } from '@/features/suggest/nextStep'
+import { useStepActions } from '@/features/suggest/useStepActions'
 
 type Filter = 'all' | 'starred' | 'GO' | 'NO-GO'
 const STATUS_ICON = { GO: [Check, 'var(--color-go)'], CAUTION: [AlertTriangle, 'var(--color-caution)'], 'NO-GO': [X, 'var(--color-nogo)'] } as const
@@ -38,22 +42,26 @@ export function HistoryList() {
   const runs = useHistoryStore((s) => s.runs)
   const picked = useMissionStore((s) => s.pickedRun)
   const pickRun = useMissionStore((s) => s.pickRun)
-  const setWorkspace = useMissionStore((s) => s.setWorkspace)
+  const act = useStepActions()
   const [q, setQ] = useState('')
   const [filter, setFilter] = useState<Filter>('all')
   const groups = useMemo(() => groupByDay(runs.filter((r) =>
     (filter === 'all' || (filter === 'starred' ? r.starred : r.status === filter))
     && (!q || `${r.site.label} ${r.note} ${r.startUtc}`.toLowerCase().includes(q.toLowerCase())))), [runs, q, filter])
-  if (runs.length === 0) return (
-    <Panel label="History" peekAside="No saved runs" className="items-center py-7 text-center">
-      <span className="raised grid size-11 place-items-center rounded-[14px]"><HistoryIcon size={20} aria-hidden /></span>
-      <h2 className="text-base font-bold">No saved runs yet</h2>
-      <p className="text-[13px] text-ink-2">Run a simulation and press the bookmark to keep it here. Runs stay on this device.</p>
-      <Button variant="primary" onClick={() => withViewTransition(() => setWorkspace('simulate'))} className="h-10">Start a simulation</Button>
+  const empty = nextStepHistory({ runs: runs.length, picked: false })
+  if (runs.length === 0 && empty) return (
+    <Panel label="History" peekAside="No saved runs">
+      <div className="flex flex-col items-center gap-2 pt-3 text-center">
+        <span className="raised grid size-11 place-items-center rounded-[14px]"><HistoryIcon size={20} aria-hidden /></span>
+        <h2 className="text-base font-bold">No saved runs yet</h2>
+        <p className="text-[13px] text-ink-2">Runs stay on this device.</p>
+      </div>
+      {/* Estado vacío con la misma forma de sugerencia que el resto de la consola (tarea C5) */}
+      <NextStepBlock step={empty} onAction={act} />
     </Panel>
   )
   return (
-    <Panel label="History" title="History" aside={<span className="text-xs text-ink-3">{runs.length} runs</span>}
+    <Panel label="History" title="History" aside={<span className="text-xs text-ink-3">{runs.length} {runs.length === 1 ? 'run' : 'runs'}</span>}
       peekAside={`${runs.length} ${runs.length === 1 ? 'run' : 'runs'}`} className="h-full">
       <Input icon={Search} placeholder="Search by site, date or note" aria-label="Search history" value={q} onChange={(e) => setQ(e.target.value)} />
       <Segmented size="sm" label="Filter runs" value={filter} onChange={setFilter}
@@ -77,10 +85,13 @@ export function RunDetails() {
   const { remove, setNote, toggleStar } = useHistoryStore()
   const { pickedRun, pickRun, select, setConfig, evaluate, setWorkspace, addScenario } = useMissionStore()
   const r = runs.find((x) => x.id === pickedRun)
-  if (!r) return runs.length ? <Panel label="Run details" peekAside="Pick a run"><p className="text-[13px] text-ink-2">Pick a run to see its summary.</p></Panel> : null
+  const pick = nextStepHistory({ runs: runs.length, picked: !!r })
+  if (!r) return runs.length && pick ? <Panel label="Run details" peekAside="Pick a run"><NextStepBlock step={pick} onAction={() => {}} /></Panel> : null
   const load = () => {
     select(r.site)
-    setConfig({ startUtc: r.startUtc, durationDays: r.durationDays, stepMinutes: r.stepMinutes })
+    // Las corridas guardadas desde la tarea A7 traen sus paneles; las viejas conservan los de Setup.
+    setConfig({ startUtc: r.startUtc, durationDays: r.durationDays, stepMinutes: r.stepMinutes,
+      ...(r.panelAreaM2 !== undefined && r.panelEfficiency !== undefined ? { panelAreaM2: r.panelAreaM2, panelEfficiency: r.panelEfficiency } : {}) })
     withViewTransition(() => setWorkspace('simulate'))
   }
   const s = r.summary
@@ -96,8 +107,8 @@ export function RunDetails() {
       <Divider />
       <dl className="flex flex-col gap-1 text-xs">
         {([[Sun, 'text-sun', 'Sunlight', pct(s.sun_visible_pct)], [Globe2, 'text-earth', 'Earth link', pct(s.earth_visible_pct)],
-          [Sun, 'text-sun', 'Next sunset', s.hours_to_next_sunset == null ? 'None' : hoursShort(s.hours_to_next_sunset)],
-          [Globe2, 'text-earth', 'Next Earthset', s.hours_to_next_earthset == null ? 'None' : hoursShort(s.hours_to_next_earthset)]] as const).map(([I, c, k, v]) => (
+          [Sun, 'text-sun', 'Next sunset', setCell(s, 'sun')],
+          [Globe2, 'text-earth', 'Next Earthset', setCell(s, 'earth')]] as const).map(([I, c, k, v]) => (
           <div key={k} className="flex h-6 items-center justify-between"><dt className="flex items-center gap-2 text-ink-2"><I size={13} className={c} aria-hidden />{k}</dt>
             <dd className="tnum font-mono text-[13px]">{v}</dd></div>))}
       </dl>

@@ -35,8 +35,8 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
   - `Countdown` de Simple y la fila "Next set" de Detailed la usan. Los porcentajes entre 0 y 1 se muestran como "<1%".
 - **Aceptación (Backend oficial, 2026-12-01, 14 días, 60 min):**
   - Chang'e 4 (2019-01-03) lee "Earth never in view".
-  - Peak Near Shackleton lee "Earth rises in N hours", no "Earth stays in view".
-  - Apollo 11 lee "Sunrise in N hours", no "No sunset in this window".
+  - Peak Near Shackleton lee "13d 7h until Earth rises", no "Earth stays in view".
+  - Apollo 11 lee "N hours until sunrise", no "No sunset in this window".
   - Shackleton Rim lee "1 hour until sunset" y "Sunlit <1% of the mission".
 - **Pruebas:** `countdown.test.ts` cubre las cuatro filas de la tabla de 3.4 para el Sol y para la Tierra, el orden entre ellas (la fila 1 gana a la 2) y el redondeo "<1%".
 
@@ -67,7 +67,7 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
 
 ### A7. `feat(history)`: guardar avisa y no duplica
 - **Spec:** 4.5. **Cierra:** A-10, H-01 (parcial).
-- **Cambios:** `isSameRun(a, b)` en `useHistoryStore`; el estado "Saved" en el botón; región `aria-live`.
+- **Cambios:** `isSameRun(a, b)` en `useHistoryStore`; el estado "Saved" en el botón; región `aria-live`; History guarda y restaura los paneles; no se guarda si Results está desactualizado.
 - **Aceptación:** dos clics seguidos dejan una sola corrida y el segundo dice "Already in history".
 - **Pruebas:** se amplía `useHistoryStore.test.ts` (igual, distinto en cada campo, y paneles no guardados en corridas viejas).
 
@@ -77,6 +77,14 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
 - **Aceptación:** al abrir la consola, Setup muestra Dec 13, 2026. Con el Backend oficial, Apollo 11 da GO sin tocar nada.
 - **Pruebas:** `time.test.ts` usa `2026-12-01` como dato de entrada de las funciones de formato, no como valor por defecto, así que no cambia. Las 27 pruebas siguen pasando.
 - **Aviso al handoff:** `docs/07` del handoff conserva `2026-12-01` como ejemplo de prueba. No se edita, pero en el handoff de vuelta se avisa que la consola ya no arranca con esa fecha.
+
+### A9. `fix(setup)`: la hora de alunizaje en formato de 24 horas
+- **Spec:** A-16 en `audit.md`.
+- **Cambios:**
+  - "Landing time (UTC)" deja `<input type="time">`, que sigue el idioma del sistema, y pasa a un campo de texto `HH:MM` de 24 horas, con `inputmode="numeric"`, `font-mono` y validación al salir.
+  - Función pura `parseUtcTime(text)` en `src/core/utils/time.ts`: acepta `H:MM` y `HH:MM` de 00:00 a 23:59; el resto devuelve un error.
+- **Aceptación:** con el navegador en `en-US`, las 00:00 UTC se ven como "00:00". Un valor inválido muestra "Use 24-hour time, for example 05:00." y no cambia `startUtc`.
+- **Pruebas:** se amplía `time.test.ts`: límites, un dígito en la hora, espacios y valores fuera de rango.
 
 ## Bloque B: ayudas "?"
 
@@ -118,7 +126,7 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
   - Cada `HelpId` del catálogo, salvo los del glosario puro, tiene al menos un "?" en pantalla.
   - Un lector de pantalla oye la ayuda al enfocar el campo.
   - Las capturas de Simple y Detailed no tienen desbordes.
-- **Pruebas:** una prueba que recorre el catálogo y comprueba que cada id usado en `src` existe (lectura de archivos con `node:fs`).
+- **Pruebas:** `usage.test.ts` lee el código con `import.meta.glob` (sin tipos de Node) y comprueba que cada ayuda usada existe y que cada entrada tiene un "?", salvo las del glosario puro (píldoras de escena, explicadas en Help y en el tour).
 
 ### B5. `feat(results)`: el porqué del veredicto con `site.checks`
 - **Spec:** 2.7. **Cierra:** A-03, A-04. **Depende de:** A1.
@@ -242,4 +250,5 @@ Quedan fuera porque no afectan al entendimiento de la consola o porque dependen 
 | F-02, F-03 (tiras plegadas, contraste) | Revisar con GPU real y medir contraste |
 | X-05 (crédito en español) | Repo del globo: se pide a su equipo |
 | X-07 (etiquetas del globo bajo los paneles) | Ajuste del vidrio o del globo: se revisa con GPU real |
+| S-05 ("Horizon view" sin guía) | Entra en parte con la ayuda `horizon-view` (B4) y el paso 5 del tour. Indicar hacia dónde está la Tierra fuera de cuadro le toca al globo |
 | X-06 (avisos del detector) | Se aceptan como están |

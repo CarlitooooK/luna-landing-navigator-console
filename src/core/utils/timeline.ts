@@ -47,4 +47,27 @@ export function formatHours(h: number | null | undefined): { value: string; unit
 export const hoursShort = (h: number | null | undefined) => (h == null ? '—' : `${Math.round(h)} h`)
 
 export const pct = (v: number | null | undefined, digits = 1) => (v == null ? '—' : `${v.toFixed(digits)}%`)
+/** Porcentaje sin decimales que no redondea a 0 % algo que sí pasó: 0.3 % se muestra "<1%". */
+export const pctWhole = (v: number | null | undefined) => (v == null ? '—' : v > 0 && v < 1 ? '<1%' : `${Math.round(v)}%`)
+
+/** Día de la misión, contado desde 1, para `h` horas desde el alunizaje. El reloj y el eje usan esta misma regla. */
+export const dayOf = (h: number) => Math.floor(h / 24 + 1e-9) + 1
+
+/**
+ * Paso del scrubber después de pulsar `key` (tarea A5). ←/→ un paso, PageUp/PageDown un día, Home/End los extremos.
+ * Devuelve `null` si la tecla no mueve el scrubber.
+ */
+export function sliderStep(key: string, index: number, count: number, stepsPerDay: number): number | null {
+  const last = Math.max(0, count - 1), day = Math.max(1, Math.round(stepsPerDay))
+  const clamp = (i: number) => Math.max(0, Math.min(last, i))
+  switch (key) {
+    case 'ArrowRight': case 'ArrowUp': return clamp(index + 1)
+    case 'ArrowLeft': case 'ArrowDown': return clamp(index - 1)
+    case 'PageUp': return clamp(index + day)
+    case 'PageDown': return clamp(index - day)
+    case 'Home': return 0
+    case 'End': return last
+    default: return null
+  }
+}
 export const deg = (v: number | null | undefined, digits = 2) => (v == null ? '—' : `${v.toFixed(digits)}°`)

@@ -4,21 +4,26 @@ import { useMissionStore } from '@/core/store/useMissionStore'
 import { SceneBackground } from '@/features/viewport3d/SceneBackground'
 import { Rail } from './Rail'
 import { FullscreenBar, TopBar } from './TopBar'
+import { hotkeyFor } from '@/features/help/shortcuts'
+import { toggleHelp } from '@/features/help/toggleHelp'
+import { Tour } from '@/features/onboarding/Tour'
 
 export interface WorkspaceSlots { left?: ReactNode; right?: ReactNode; top?: ReactNode; bottom?: ReactNode; overlay?: ReactNode; leftWidth?: number }
 
 /** Franja inferior libre para los créditos NASA/Cesium del globo (handoff docs/11 §2, ≈32 px). */
 export const ATTRIBUTION_STRIP = 32
 
-function useFullscreenHotkey() {
+/** `F` pantalla completa y `?` Help, fuera de los campos y sin un `<dialog>` abierto (tareas D1 y D3). */
+function useHotkeys() {
   const toggle = useMissionStore((s) => s.toggleFullscreen)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
-      if (e.key.toLowerCase() !== 'f' || e.metaKey || e.ctrlKey || e.altKey) return
-      if (t.closest('input, textarea, select, [contenteditable="true"]')) return
+      const key = hotkeyFor(e, { inField: !!t.closest?.('input, textarea, select, [contenteditable="true"]'), dialogOpen: !!document.querySelector('dialog[open]') })
+      if (!key) return
       e.preventDefault()
-      withViewTransition(toggle)
+      if (key === 'fullscreen') withViewTransition(toggle)
+      else toggleHelp()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -44,7 +49,7 @@ function Attribution() {
  * al pasar el puntero o al entrar con teclado (index.css, "Pantalla completa").
  */
 export function ConsoleShell({ slots }: { slots: WorkspaceSlots }) {
-  useFullscreenHotkey()
+  useHotkeys()
   useLiquidLight()
   const fullscreen = useMissionStore((s) => s.fullscreen)
   return (
@@ -57,7 +62,8 @@ export function ConsoleShell({ slots }: { slots: WorkspaceSlots }) {
           <div className="relative flex min-h-0 flex-1 gap-4">
             {slots.left && <div className="peek flex shrink-0 flex-col gap-3 overflow-y-auto [--from-x:calc(var(--drift)*-1)] [view-transition-name:vt-left]" style={{ width: slots.leftWidth ?? 300 }}>{slots.left}</div>}
             <div className="relative flex min-w-0 flex-1 flex-col justify-between gap-4">
-              <div className="flex flex-wrap items-start gap-2">{slots.top}</div>
+              {/* self-start: el ancla del tour mide solo las píldoras, no todo el ancho */}
+              <div data-tour="scene" className="flex flex-wrap items-start gap-2 self-start">{slots.top}</div>
               <div className="peek flex justify-center [view-transition-name:vt-dock]">{slots.bottom}</div>
             </div>
             {slots.right && <div className="peek flex w-[300px] shrink-0 flex-col gap-3 overflow-y-auto [--from-x:var(--drift)] [view-transition-name:vt-right]">{slots.right}</div>}
@@ -66,6 +72,7 @@ export function ConsoleShell({ slots }: { slots: WorkspaceSlots }) {
         </div>
       </div>
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-10" style={{ height: ATTRIBUTION_STRIP }}><Attribution /></div>
+      <Tour />
     </>
   )
 }

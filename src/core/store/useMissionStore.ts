@@ -5,6 +5,8 @@ import { api } from '@/core/api/endpoints'
 import { ApiError } from '@/core/api/errors'
 import { toUtcIso } from '@/core/utils/time'
 import type { Priority } from '@/core/utils/compare'
+import type { RunParams } from '@/core/utils/stale'
+import { atMidnight, dateVariants } from '@/core/utils/scenarios'
 import type { CompareResponse, Ephemeris, Evaluation, HealthResponse, PsrList, PsrNearby, Site, TerrainPatch } from '@/types'
 
 export type Workspace = 'simulate' | 'compare' | 'history' | 'missions'
@@ -50,6 +52,8 @@ interface MissionState {
   loading: boolean
   error: ApiError | null
   lastRunMs: number | null
+  /** Con qué sitio y parámetros se hizo `evaluation`; sirve para marcar Results como desactualizado (`isStale`). */
+  evaluatedFor: RunParams | null
 
   // capa 3: reproducción
   stepIndex: number
@@ -84,6 +88,10 @@ interface MissionState {
   setPlaying: (p: boolean) => void
 
   addScenario: (s: Omit<Scenario, 'key'>) => boolean
+  /** "Compare dates": el sitio actual en su fecha, +7 y +14 días (D5); pasa a Compare y compara (tarea C3). */
+  compareDates: () => Promise<void>
+  /** "Compare sites": agrega el escenario actual y pasa a Compare para sumar otros sitios (tarea C3). */
+  compareSites: () => void
   removeScenario: (key: string) => void
   compare: () => Promise<void>
   showScenario: (key: string) => Promise<void>
@@ -102,9 +110,10 @@ const sameScenario = (a: Omit<Scenario, 'key'>, b: Omit<Scenario, 'key'>) =>
 export const useMissionStore = create<MissionState>((set, get) => ({
   workspace: 'simulate', detail: 'simple', fullscreen: false, viewMode: 'globe',
   health: null, sites: [], selected: null,
-  startUtc: toUtcIso(new Date('2026-12-01T00:00:00Z')), // valor de prueba de docs/07
+  // De día en casi todo el catálogo. Con 2026-12-01 (el ejemplo de docs/07), 11 de 13 sitios daban NO-GO (spec de onboarding, D11).
+  startUtc: toUtcIso(new Date('2026-12-13T00:00:00Z')),
   durationDays: 14, stepMinutes: 60, panelAreaM2: 4, panelEfficiency: 0.28,
-  evaluation: null, terrain: null, psrs: null, auxFailed: [], ephemeris: null, polePsrs: null, loading: false, error: null, lastRunMs: null,
+  evaluation: null, terrain: null, psrs: null, auxFailed: [], ephemeris: null, polePsrs: null, loading: false, error: null, lastRunMs: null, evaluatedFor: null,
   stepIndex: 0, playing: false,
   scenarios: [], comparison: null, comparing: false, compareError: null, shownScenario: null, rankBy: 'balanced',
   pickedRun: null, pickedMission: 'im-1',
@@ -161,7 +170,8 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       // Con el globo disponible la simulación se queda en él (vuelo continuo, sin cambio de motor);
       // la escena local del parche queda como "Terrain detail". Sin globo, la escena local es el fondo.
       const globeOk = !!GLOBE_URL && useGlobeStore.getState().link !== 'unavailable'
-      set({ evaluation: ev.value, terrain, psrs, auxFailed, loading: false, viewMode: !globeOk && terrain ? 'site' : 'globe', lastRunMs: performance.now() - t0 })
+      set({ evaluation: ev.value, terrain, psrs, auxFailed, loading: false, viewMode: !globeOk && terrain ? 'site' : 'globe', lastRunMs: performance.now() - t0,
+        evaluatedFor: { lat, lon, label: selected.label, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency } })
     } catch (e) { set({ error: e as ApiError, loading: false }) }
   },
   backToGlobe: () => set({ viewMode: 'globe', playing: false }),
@@ -174,6 +184,21 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     if (scenarios.length >= MAX_SCENARIOS || scenarios.some((x) => sameScenario(x, s))) return false
     set({ scenarios: [...scenarios, { ...s, key: `s${++scenarioSeq}` }], comparison: null })
     return true
+  },
+  compareDates: async () => {
+    const { selected, startUtc, scenarios, addScenario } = get()
+    if (!selected) return
+    const mine = scenarios.filter((x) => x.site.lat === selected.lat && x.site.lon === selected.lon).map((x) => x.startUtc)
+    for (const d of dateVariants(atMidnight(startUtc), [7, 14], mine, MAX_SCENARIOS - scenarios.length)) {
+      addScenario({ label: `${selected.label} (${d.slice(0, 10)})`, site: selected, startUtc: d })
+    }
+    set({ workspace: 'compare' })
+    if (get().scenarios.length >= 2) await get().compare()
+  },
+  compareSites: () => {
+    const { selected, startUtc, addScenario } = get()
+    if (selected) addScenario({ label: `${selected.label} (${startUtc.slice(0, 10)})`, site: selected, startUtc: atMidnight(startUtc) })
+    set({ workspace: 'compare' })
   },
   removeScenario: (key) => set((st) => ({
     scenarios: st.scenarios.filter((x) => x.key !== key), comparison: null,

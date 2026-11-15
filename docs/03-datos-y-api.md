@@ -53,7 +53,7 @@ Campos de la respuesta y dónde se ven:
 | --- | --- |
 | `site.status` | Chip GO/CAUTION/NO-GO y titular de Results; color del pin en el globo; History |
 | `site.reasons` (en español) | Results › Detailed, lista de comprobaciones (`lang="es"`) |
-| `site.slope_deg` | Results (Simple "Ground", Detailed "Local slope"); Missions "Ground" |
+| `site.slope_deg` | Results (Simple y Detailed "Ground slope"); Missions "Ground" |
 | `site.elevation_m` | Results › Detailed |
 | `site.nearest_psr_km` | Results (Simple "Permanent shadow N km away", Detailed) |
 | `site.lat`, `site.lon` | Sitio de los vectores para el globo y de la escena de alunizaje |
@@ -134,8 +134,10 @@ La URL "Producción / Demo Pública" de `docs/07` sirve v1.1: ahí `/psr`, `/eph
 | Dato | Dónde vive | Notas |
 | --- | --- | --- |
 | Historial de corridas | `localStorage`, clave `lunar-navigator.history` (`useHistoryStore`) | Solo en este navegador. Máximo 100. Guarda sitio, fecha, duración, paso, `status`, `summary`, estrella y nota. No guarda el timeline |
+| Estado del tour | `localStorage`, clave `lunar-navigator.onboarding` (`useOnboardingStore`) | Solo `unseen`, `dismissed` o `completed` y la fecha. `?tour=0` en la URL suprime el autoarranque sin tocarlo |
+| Escenario del tour | `src/features/onboarding/steps.ts` (`TOUR_SCENARIO`) | `apollo-11`, `2026-12-13T00:00:00Z`, 14 días. Si `apollo-11` no está en `/sites`, el primer sitio con la fecha de Setup |
 | Catálogo de misiones | `src/features/missions/missions.ts` | 7 alunizajes reales (IM-1, IM-2, Chandrayaan-3, Chang'e 4, Apollo 17, 15 y 11) con fecha, hora, coordenadas y fuentes citadas. Las condiciones de luz **no** se guardan: salen de `/evaluate` al reproducir |
-| Valores iniciales | `useMissionStore` | `2026-12-01T00:00:00Z`, 14 días, 60 min, 4 m², 28 % |
+| Valores iniciales | `useMissionStore` | `2026-12-13T00:00:00Z`, 14 días, 60 min, 4 m², 28 % |
 | Telemetría de la escena | Mensajes del globo (`SCENE_TELEMETRY`) | Ilustrativa |
 
 ## Cuándo hay red y cuándo no

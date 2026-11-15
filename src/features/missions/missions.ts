@@ -17,8 +17,17 @@ export interface Mission {
   lon: number
   region: MissionRegion
   summary: string
+  /**
+   * El registro histórico dice que la Tierra nunca se ve desde el sitio (tarea C4). Solo sirve para avisar si la
+   * simulación dice otra cosa: la consola no elige quién tiene razón (design.md §4.6).
+   */
+  earthNeverInView?: boolean
   sources: { label: string; url: string }[]
 }
+
+/** ¿El registro de la misión y la simulación se contradicen sobre la Tierra? Solo hay algo que comparar si el registro lo afirma. */
+export const missionDisagrees = (m: Pick<Mission, 'earthNeverInView'>, earthVisiblePct: number) =>
+  m.earthNeverInView === true && earthVisiblePct > 0
 
 export const MISSIONS: Mission[] = [
   {
@@ -52,6 +61,7 @@ export const MISSIONS: Mission[] = [
     id: 'change-4', code: 'CE-4', name: "Chang'e 4", operator: 'CNSA',
     touchdownUtc: '2019-01-03T02:26:00Z', lat: -45.4446, lon: 177.5991, region: 'far-side',
     summary: 'First soft landing on the far side, in Von Kármán crater. Earth is never in view: it talked through the Queqiao relay.',
+    earthNeverInView: true,
     sources: [{ label: 'China NSSDC: Chang\'e 4 mission (time, site)', url: 'https://www.nssdc.ac.cn/mobile/nssdc_en/html/task/change4.html' }],
   },
   {

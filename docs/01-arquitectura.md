@@ -58,7 +58,7 @@ Organizado en las tres velocidades de `docs/ideas/frontend-architecture-guide.md
 | Compare | `scenarios`, `comparison`, `comparing`, `compareError`, `shownScenario` | Panel Scenarios | `compare()` y `showScenario()` |
 | Selección local | `pickedRun` (History), `pickedMission` (Missions, `im-1` por defecto) | Listas | No |
 
-Valores por defecto: `startUtc = 2026-12-01T00:00:00Z` (dato de prueba de `docs/07`), 14 días, paso de 60 min, panel de 4 m² al 28 %.
+Valores por defecto: `startUtc = 2026-12-13T00:00:00Z` (de día en casi todo el catálogo; D11 de la spec de onboarding), 14 días, paso de 60 min, panel de 4 m² al 28 %.
 
 Acciones principales:
 
@@ -90,6 +90,10 @@ Lo escribe **solo** el puente (`useGlobeBridge`) y los botones de escena (`Scene
 ### `useHistoryStore` (historial, persistente)
 
 `zustand/persist` en `localStorage`, clave `lunar-navigator.history`, versión 1, límite 100 corridas. Guarda parámetros y `summary`, no el `timeline` (unos 180 KB por corrida): reabrir una corrida vuelve a evaluar.
+
+### `useOnboardingStore` (tour, persistente)
+
+`zustand/persist` en `localStorage`, clave `lunar-navigator.onboarding`, versión 1. Solo guarda `tour: { status, at }`, con `status` en `unseen`, `dismissed` o `completed`; el paso abierto (`step`) no se guarda. `migrateOnboarding()` (`features/onboarding/steps.ts`) normaliza lo guardado sin `version` o con un estado desconocido a `unseen`. Qué pasos tocan y con qué texto lo decide la función pura `resolveSteps()` del mismo archivo.
 
 ## Qué pasa al pulsar "Run simulation"
 

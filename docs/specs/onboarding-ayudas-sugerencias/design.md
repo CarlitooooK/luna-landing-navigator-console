@@ -37,7 +37,7 @@ Siete pasos como máximo (seis sin globo). Cada uno apunta a un elemento real ma
 | 2 | `setup` | `SetupPanel` completo (`simulate/SetupPanel.tsx:168`) | Where, when, run | Search a landing site or click the globe. Set the landing date and how long the mission lasts. Then run the simulation: the server traces the horizon and follows the Sun and Earth for the whole stay. | "Try Apollo 11" si no hay sitio; después "Run simulation" |
 | 3 | `results` | `ResultsPanel` (`simulate/ResultsPanel.tsx:157`) | The verdict, and why | GO, CAUTION or NO-GO comes from the server, with the checks behind it. Below: how long the Sun stays up, how long you can talk to Earth and how steep the ground is. Every "?" explains a number. | — |
 | 4 | `timeline` | `TimelineDock` (`timeline/TimelineDock.tsx:81`) | Time is the main control | Drag the timeline or press play. The Sun and Earth move in the 3D view and the numbers follow. Bright bars are the hours with sunlight or with Earth in view. | "Play" (alterna `setPlaying`) |
-| 5 | `scene` | Fila de píldoras (`layout/ConsoleShell.tsx:60`) | See it on the ground | Landing scene plays an illustrative descent at this site. Terrain detail opens the local terrain from the server. | — |
+| 5 | `scene` | Fila de píldoras (`layout/ConsoleShell.tsx:60`) | See it on the ground | Horizon view puts you on the ground: watch the Sun and Earth rise and set behind the real skyline as you move the timeline. Landing scene plays an illustrative descent. Terrain detail opens the local terrain from the server. | "Horizon view" (pide `requestHorizon()`) |
 | 6 | `detail` | `DetailToggle` (`layout/TopBar.tsx:27`) | Two levels of detail | Simple speaks plain language. Detailed shows the full telemetry: angles, horizon and power. Same simulation, same verdict. | "Show Detailed" / "Show Simple" (alterna `setDetail`) |
 | 7 | `rail` | `Rail` (`layout/Rail.tsx:20`) | Where to go next | Compare ranks two to five site and date options. Missions replays real landings. History keeps the runs you save. Press F for full screen and ? for help at any time. | "Done" |
 
@@ -51,7 +51,7 @@ Variantes, decididas por una función pura `resolveSteps(state)`:
 | Hay evaluación | Paso 2: el botón dice "Run again". |
 | No hay evaluación al llegar al paso 3 o al 4 | Paso 3: "Your verdict will appear here after you run a simulation." Paso 4: tarjeta centrada sin foco de luz (el dock no existe sin evaluación, `TimelineDock.tsx:55`) y texto "The timeline appears below once a simulation has run." Sin botón "Play". |
 | Sin píldoras en el DOM (sin evaluación, o sin globo y sin `terrain`) | El paso 5 se omite y el contador dice "of 6". |
-| Sin globo (`VITE_GLOBE_URL` vacío o `link = 'unavailable'`) | Paso 5: solo la frase de "Terrain detail" (o "Global view" si la escena local ya es el fondo). Paso 4: "in the 3D view" se mantiene, vale para ambos renders. |
+| Sin globo (`VITE_GLOBE_URL` vacío o `link = 'unavailable'`) | Paso 5: solo la frase de "Terrain detail" (o "Global view" si la escena local ya es el fondo), sin "Horizon view" ni "Landing scene", que corren en el globo. Paso 4: "in the 3D view" se mantiene, vale para ambos renders. |
 | Sin backend (`health = null` y `ERR_NETWORK`) | Paso 2: sin botones de acción y con la nota "The simulation server is unreachable, so this tour only describes the screen. It retries on its own." Los pasos 3 y 4 usan la variante sin evaluación. |
 | Ancla ausente por cualquier otra causa | Tarjeta centrada sin foco de luz. El tour nunca se rompe por un elemento que falta. |
 
@@ -116,7 +116,7 @@ Componente `HelpTip` en `src/ui/`:
 
 ### 2.2 Cambio previo en `Field`
 
-`Field` es hoy un `<label>` que envuelve a sus hijos (`src/ui/index.tsx:79`). Un botón "?" dentro de ese `<label>` se activaría al hacer clic en el texto de la etiqueta, y lo mismo pasa ya con el primer botón de un `Segmented`. `Field` pasa a ser un `<div>`: la etiqueta es un `<label htmlFor>` cuando envuelve un campo y un `<span id>` con `aria-labelledby` en el grupo cuando envuelve un `Segmented`. El "?" va junto a la etiqueta, fuera de ella. `Field` gana la propiedad `help?: HelpId`.
+`Field` es hoy un `<label>` que envuelve a sus hijos (`src/ui/index.tsx:79`). Un botón "?" dentro de ese `<label>` se activaría al hacer clic en el texto de la etiqueta, y lo mismo pasa ya con el primer botón de un `Segmented`. `Field` pasa a ser un `<div>`: la etiqueta es un `<label htmlFor>` cuando envuelve un campo y un `<span id>` con `aria-labelledby` en el grupo cuando envuelve un `Segmented`. El "?" va junto a la etiqueta, fuera de ella. `Field` gana la propiedad `help?: ReactNode`, donde va el `<HelpTip>`. No es un `HelpId` para que la primitiva de `src/ui/` no dependa del catálogo de `src/features/help/`. El `Input` de dentro recibe por contexto el `id` del `<label htmlFor>` y el `aria-describedby` del hint o del error.
 
 ### 2.3 Catálogo: campos de Setup
 
@@ -138,7 +138,7 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 | `HelpId` | Dónde | Texto | Fuente |
 | --- | --- | --- | --- |
 | `verdict` | Chip de estado en Results (`ResultsPanel.tsx:65`, `:93`), Compare, History y Missions | GO: every check passes. CAUTION: at least one check is marginal. NO-GO: at least one check fails. The server decides; the console only shows it. | Contrato §4.4 "Veredicto" |
-| `daylight` | "Daylight" (`:70`) y pista "Sunlight" | Time until the Sun first drops behind the local terrain, and the share of the mission with direct sunlight. | `hours_to_next_sunset`, `sun_visible_pct` |
+| `daylight` | "Daylight" (`:70`) y pista "Sunlight" | Time until the Sun next sets or rises behind the local terrain, and the share of the mission with direct sunlight. | `hours_to_next_sunset`, `sun_visible_pct` |
 | `earth-link` | "Talk to Earth" (`:72`), "Earth link", "Earth in view" | A direct radio link (Direct-to-Earth, DTE) needs Earth above the local horizon. With Earth never in view, the mission needs a relay satellite. | `earth_visible_pct`; mensaje de `DTE_NONE` |
 | `power` | "Solar power now" (`:74`), "Power factor now", "Average factor" | Relative solar power at the time selected on the timeline, as reported by the server. Move the timeline to watch it change. | `power_factor`. **Pendiente:** la definición exacta no está en el contrato (pregunta al backend en [`README.md`](README.md)) |
 | `peak-power` | "Peak in this window" (`:75`, `:126`) | Highest estimated electrical power in the window, for the panel area and efficiency set in Setup. | `estimated_peak_power_w` |
@@ -151,8 +151,9 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 | `longest` | "Longest stretch" (`:114`), "Longest daylight", "Longest link" | The longest uninterrupted period in view during the window. | `max_continuous_*_hours` |
 | `both` | Pista "Both" (`TimelineDock.tsx:71`), que pasa a llamarse **"Sun + Earth"** | Hours with sunlight and Earth in view at the same time: power and a direct radio link together. | `sun_visible && earth_visible` |
 | `horizon-360` | Pestaña "Horizon 360°" (`TimelineDock.tsx:97`) | The skyline seen from the site, unrolled from north through east, south and west. The dots are the Sun and Earth right now; a dot under the line is hidden. | `horizon_profile` |
-| `landing-scene` | Píldora "Landing scene" (`SceneControls.tsx:62`) | An illustrative descent at this site. The path and the numbers on screen are not a physical simulation. | D-015; rótulo "Illustrative" |
-| `terrain-detail` | Píldora "Terrain detail" (`:67`) | The local terrain patch served by the server, lit by the Sun at the selected time. | `GET /terrain/patch`. Con v1.2 o superior añade "Source: {grid.source}, {native_resolution_m} m per pixel." |
+| `horizon-view` | Píldora "Horizon view" (`SceneControls.tsx:71`) | Stand at the landing spot and look around. The skyline is the real terrain horizon from the server; the Sun and Earth follow the timeline and hide behind it. | `horizon_profile`, `SET_SKY_STATE` (`docs/11` §11 del handoff). El brillo del suelo es ilustrativo |
+| `landing-scene` | Píldora "Landing scene" (`SceneControls.tsx:82`) | An illustrative descent at this site. The path and the numbers on screen are not a physical simulation. | D-015; rótulo "Illustrative" |
+| `terrain-detail` | Píldora "Terrain detail" (`:87`) | The local terrain patch served by the server, lit by the Sun at the selected time. | `GET /terrain/patch`. Con v1.2 o superior añade "Source: {grid.source}, {native_resolution_m} m per pixel." |
 
 ### 2.5 Catálogo: barra superior y Compare
 
@@ -160,7 +161,7 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 | --- | --- | --- | --- |
 | `detail-level` | `DetailToggle` (`TopBar.tsx:30`) | Simple speaks plain language. Detailed shows the full telemetry. Same simulation, same verdict. | `PRODUCT.md`, principio 2 |
 | `data-source` | Chip de origen de datos (`TopBar.tsx:21`). Sustituye al `title` actual | Live data: computed by the simulation server from NASA terrain and ephemerides. Degraded: the server answers, but one of its parts is not healthy. Offline: the server cannot be reached. | `GET /health`. "Sample data" desaparece con el mock (D13) |
-| `scenario` | Título "Scenarios" (`ComparePanels.tsx:78`) | A scenario is one site on one landing date, starting at 00:00 UTC. Compare two to five. They all use the mission length and solar panels set in Simulate. | Contrato §4.5; `useMissionStore.ts:145-152` |
+| `scenario` | Título "Scenarios" (`ComparePanels.tsx:78`) | A scenario is one site on one landing date, starting at 00:00 UTC. Compare two to five. They all use the mission length and solar panels set in Simulate, with a 2-hour time step. | Contrato §4.5; `useMissionStore.ts:145-152` |
 | `rank-by` | "Rank by" (`:96`) | GO always ranks above CAUTION, and CAUTION above NO-GO. Within the same verdict: Balanced adds sunlight and Earth shares, Sunlight uses the sunlit share, Earth link uses the Earth-in-view share. | `core/utils/compare.ts`. La opción "Power" pasa a llamarse **"Sunlight"**: ordena por `sun_visible_pct`, no por potencia |
 
 ### 2.6 Botón Help y glosario
@@ -168,7 +169,7 @@ Los rangos y valores por defecto salen de `contracts/openapi.json` y de `.handof
 En la barra superior, a la izquierda de "Full screen", y también en la barra de pantalla completa: un botón `raised` con el ícono `CircleHelp`, el texto "Help" y `<Kbd>?</Kbd>`. La tecla `?` lo abre, con la misma protección que `F` (no actúa dentro de un campo). Abre un `popover` de 360 px con tres secciones:
 
 1. **"Take the tour"**: relanza el tour.
-2. **"Glossary"**: todas las entradas del catálogo agrupadas en Verdict, Sun and power, Earth link, Terrain y Time. Es el mismo texto de los "?".
+2. **"Glossary"**: todas las entradas del catálogo agrupadas en Setup, Verdict, Sun and power, Earth link, Terrain, Time, Views y Compare (`HELP_GROUPS` de `glossary.ts`). Es el mismo texto de los "?".
 3. **"Shortcuts"**: solo los que existen: `F` full screen, `?` help, `←` `→` move the timeline, `Esc` close.
 
 ### 2.7 El porqué del veredicto: `site.checks`
@@ -187,7 +188,7 @@ Un bloque **"Next step"**, uno solo por pantalla, siempre en el mismo lugar de c
 
 - **Forma:** superficie `raised` de radio 14 px, con `IconWell` del color de señal del estado, el rótulo "Next step" (`text-xs text-ink-3`), una frase (`text-[13px] text-ink`) y un botón de acción como máximo, más un enlace secundario opcional.
 - **Énfasis sin romper el vidrio:** al aparecer tras un cálculo hace `ignite` una vez (dos pulsos de retroiluminación, ya existe). No hay franja lateral de color ni fondo saturado ni color nuevo.
-- **Una sola tecla luminosa:** el único `btn-primary` de la pantalla es siempre la acción que toca. Antes de simular es "Run simulation". Con resultados vigentes, "Run simulation" baja a `raised` y la acción de la sugerencia toma el `btn-primary`.
+- **Una sola tecla luminosa:** el único `btn-primary` de los paneles es siempre la acción que toca (el botón redondo de Play del timeline conserva su estilo: es un control de reproducción, no una acción del flujo). Antes de simular es "Run simulation". Con resultados vigentes, "Run simulation" baja a `raised` y la acción de la sugerencia toma el `btn-primary`.
 - **Lector de pantalla:** una región `aria-live="polite"` anuncia veredicto y sugerencia al terminar el cálculo, por ejemplo: "NO-GO. Critical slope. Next step: try a nearby site."
 
 Qué sugerencia toca lo decide una función pura `nextStep(state)` en `src/features/suggest/nextStep.ts`.
@@ -198,9 +199,9 @@ Qué sugerencia toca lo decide una función pura `nextStep(state)` en `src/featu
 | --- | --- | --- | --- |
 | Sin conexión | `health = null` y `ERR_NETWORK` | The simulation server is unreachable. Sites and simulations are paused; it retries every 20 seconds. | "Retry now" → `init()` |
 | Sin sitio | `selected = null` | Pick a landing site to begin: search the catalog or click the globe. | "Browse sites" → enfoca el buscador. Secundaria: "Replay a real mission" → Missions |
-| Listo para simular | Sitio elegido, sin evaluación | Ready: {site}, {date}, {n} days. | Ninguna propia: señala "Run simulation", que es el `btn-primary` |
+| Listo para simular | Sitio elegido, sin evaluación | Ready: {site}, {date}, {n} days. Run the simulation to see the verdict. | Ninguna propia: señala "Run simulation", que es el `btn-primary` |
 | Calculando | `loading` | — (el esqueleto ya lo dice) | — |
-| Resultados desactualizados | El sitio, la fecha, la duración, el paso o los paneles ya no son los de la última evaluación | These results are for {site}, {date}. Run again to update them. | "Run again" → `evaluate()`. Results se atenúa al 60% con el rótulo "Out of date" |
+| Resultados desactualizados | El sitio, la fecha, la duración, el paso o los paneles ya no son los de la última evaluación | The setup changed since the last run. Run the simulation again to update the results. (El sitio y la fecha de la corrida ya los dice el aviso "Out of date" de A4.) | "Run again" → `evaluate()`. Results se atenúa al 60% con el rótulo "Out of date" |
 | GO | `status = 'GO'` | A good window. Save it, or check whether a launch slip would cost you. | "Compare dates". Secundaria: "Save to history" |
 | CAUTION o NO-GO con `checks` | Ver 3.3 | Ver 3.3 | Ver 3.3 |
 | CAUTION o NO-GO sin `checks` | v1.1 | CAUTION: One condition is marginal. See how other dates compare. · NO-GO: One condition fails. See how other dates compare, or try another site. | "Compare dates". Secundaria: "Change site" |
@@ -232,11 +233,11 @@ El texto se decide en este orden, mirando primero `timeline[0]` y después el re
 | # | Condición | Sol | Tierra |
 | --- | --- | --- | --- |
 | 1 | `*_visible_pct` es 0 | "No sunlight in this window" | "Earth never in view" |
-| 2 | Oculto en `timeline[0]`; el primer punto visible está a `h` horas del inicio | "Sunrise in {h} hours" | "Earth rises in {h} hours" |
+| 2 | Oculto en `timeline[0]`; el primer punto visible está a `h` horas del inicio | "{h} hours until sunrise" | "{h} hours until Earth rises" |
 | 3 | Visible en `timeline[0]` y `hours_to_next_*` es un número | "{n} hours until sunset" | "{n} hours until Earth sets" |
 | 4 | Visible en `timeline[0]` y `hours_to_next_*` es `null` | "No sunset in this window" | "Earth stays in view" |
 
-`h` son las horas entre `timeline[0].timestamp_utc` y ese primer punto. Es leer el timeline que manda el backend, no calcular física. La misma regla aplica a la fila "Next set" de Detailed: en el caso 2 dice "Rises in".
+`h` son las horas entre `timeline[0].timestamp_utc` y ese primer punto. Es leer el timeline que manda el backend, no calcular física. La misma regla aplica a la fila "Next set" de Detailed: "{h} h", "rise {h}h" (sin espacio, para caber en la columna de 78 px), "never" o "no set". La implementación es `src/core/utils/countdown.ts`.
 
 **Porcentaje redondeado.** "Sunlit 0% of the mission" con el Sol arriba una hora (Shackleton Rim, 0.3 %) parece una contradicción. Cuando el porcentaje es mayor que 0 y menor que 1, se muestra "<1%".
 
@@ -300,7 +301,7 @@ El paso 2 del tour depende de esto: sin la corrección, quien navega con teclado
 | A-04 | `index.html:2` con `lang="es"` | `lang="en"`. Las razones en español conservan su `lang="es"` (sección 2.7) |
 | A-14 | "POST /evaluate · 2.52 s · 336 steps" (`SetupPanel.tsx:153`) | Simple: "Last run took 2.5 s". Detailed: "Computed in 2.5 s · 336 samples" |
 | A-14 | "From POST /compare" (`ComparePanels.tsx:126`) | "Computed by the simulation server" |
-| A-14 | `aria-label` "Open the local terrain from the API" (`SceneControls.tsx:66`) | "Open the local terrain around this site" |
+| A-14 | `aria-label` "Open the local terrain from the API" (`SceneControls.tsx:87`) | "Open the local terrain around this site" |
 | A-04 | "3 checks from the backend" (`ResultsPanel.tsx:94`) | Lo define la sección 2.7 |
 | X-03 | "tilt", "Local slope", "Ground slope" | "Ground slope" en todos los workspaces |
 | X-03 | "Nearest shadow zone", "Permanent shadow", "Terrain & ice" | "Permanent shadow" como término; el título de la sección de Detailed pasa a "Terrain" |
@@ -311,7 +312,7 @@ El paso 2 del tour depende de esto: sin la corrección, quien navega con teclado
 
 ### 4.5 Guardar en History (A-10)
 
-El bookmark pasa a ser un botón con texto en Detailed ("Save") y con `aria-label` "Save to history" en Simple. Al guardar, el ícono pasa a lleno durante 1.5 s y una región `aria-live` dice "Saved to history". Si ya existe una corrida con el mismo sitio, inicio, duración, paso y paneles, no se crea otra: se avisa "Already in history". La deduplicación es una función pura en `useHistoryStore` y lleva prueba.
+El bookmark sigue siendo un botón de ícono con `aria-label` "Save to history". Al guardar, el ícono pasa a `BookmarkCheck` y una línea `role="status"` dice "Saved to history." durante 2.5 s. Si ya existe una corrida con el mismo sitio, inicio, duración, paso y paneles (`isSameRun` de `useHistoryStore`), no se crea otra y la línea dice "Already in history.". Una corrida vieja sin paneles nunca se toma como igual. Si Results está desactualizado (§3.2), el botón se deshabilita con el nombre "Run the simulation again to save it": solo se guarda la corrida que está en pantalla. History guarda también los paneles, y "Open in Simulate" los restaura cuando la corrida los trae.
 
 ### 4.6 Texto fijo de una misión frente a los datos (M-02)
 
