@@ -15,6 +15,9 @@ interface GlobeState {
   link: GlobeLink
   /** Si aparece un astronauta junto al módulo al posarse (opción de `PLAY_LANDING_SCENE`). */
   astronaut: boolean
+  /** Regiones de sombra permanente (PSR) sobre el globo: se pueden ocultar para ver el relieve limpio. */
+  showPsr: boolean
+  togglePsr: () => void
   setAstronaut: (on: boolean) => void
   landing: Landing
   horizon: Horizon
@@ -32,6 +35,8 @@ interface GlobeState {
 export const useGlobeStore = create<GlobeState>((set) => ({
   link: 'idle',
   astronaut: true,
+  showPsr: true,
+  togglePsr: () => set((s) => ({ showPsr: !s.showPsr })),
   setAstronaut: (astronaut) => set({ astronaut }),
   landing: NONE,
   horizon: HORIZON_NONE,

@@ -1,4 +1,4 @@
-import { Clapperboard, Globe2, LogOut, Mountain, Sunrise, User } from 'lucide-react'
+import { Clapperboard, Globe2, LogOut, Moon, Mountain, Sunrise, User } from 'lucide-react'
 import { GLOBE_URL } from '@/core/config'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { useGlobeStore } from '@/core/store/useGlobeStore'
@@ -70,6 +70,8 @@ export function SceneControls() {
   const clearLanding = useGlobeStore((s) => s.clearLanding)
   const astronaut = useGlobeStore((s) => s.astronaut)
   const setAstronaut = useGlobeStore((s) => s.setAstronaut)
+  const showPsr = useGlobeStore((s) => s.showPsr)
+  const togglePsr = useGlobeStore((s) => s.togglePsr)
   const horizon = useGlobeStore((s) => s.horizon)
   const requestHorizon = useGlobeStore((s) => s.requestHorizon)
   const clearHorizon = useGlobeStore((s) => s.clearHorizon)
@@ -94,7 +96,12 @@ export function SceneControls() {
   // Escena local del parche encima del globo
   if (viewMode === 'site') return <SiteControls />
 
-  if (!hasEvaluation) return landing.error ? <Pill className="pointer-events-none" aria-live="polite">{landing.error}</Pill> : null
+  const psrPill = globeReady && (
+    <Pill onClick={togglePsr} aria-pressed={showPsr} aria-label={`Permanently shadowed regions: ${showPsr ? 'shown' : 'hidden'}`}>
+      <Moon size={14} aria-hidden />Shadowed regions {showPsr ? 'on' : 'off'}
+    </Pill>
+  )
+  if (!hasEvaluation) return <>{psrPill}{landing.error && <Pill className="pointer-events-none" aria-live="polite">{landing.error}</Pill>}</>
   return (
     <>
       {/* Vista de horizonte: el Sol y la Tierra del timeline contra la silueta real del terreno (docs/05 §5.2) */}
@@ -114,6 +121,7 @@ export function SceneControls() {
           <Clapperboard size={14} aria-hidden />Landing scene
         </Pill>
       )}
+      {psrPill}
       {globeReady && (
         <Pill onClick={() => setAstronaut(!astronaut)} aria-pressed={astronaut} aria-label={`Astronaut in the landing scene: ${astronaut ? 'on' : 'off'}`}>
           <User size={14} aria-hidden />Astronaut {astronaut ? 'on' : 'off'}

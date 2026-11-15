@@ -58,7 +58,7 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
     const sendPsr = () => {
       const { psrs, polePsrs } = mission()
       const nearby = psrItems(psrs)
-      const items = nearby.length ? nearby : globalPsrItems(polePsrs)
+      const items = !globe().showPsr ? [] : nearby.length ? nearby : globalPsrItems(polePsrs)
       post({ type: 'SET_PSR', payload: items })
     }
     const sendPins = () => {
@@ -152,6 +152,7 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
     })
     const unsubGlobe = useGlobeStore.subscribe((s, p) => {
       if (!ready) return
+      if (s.showPsr !== p.showPsr) sendPsr()
       if (s.landing.requested && !p.landing.requested) startLanding()
       if (s.horizon.requested && !p.horizon.requested) startHorizon()
       // Salir del horizonte: el globo vuela de vuelta a la esfera sobre el sitio (si no es porque empezó la escena)
