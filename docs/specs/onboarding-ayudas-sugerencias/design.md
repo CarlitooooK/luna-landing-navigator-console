@@ -116,7 +116,7 @@ Componente `HelpTip` en `src/ui/`:
 
 ### 2.2 Cambio previo en `Field`
 
-`Field` es hoy un `<label>` que envuelve a sus hijos (`src/ui/index.tsx:79`). Un botón "?" dentro de ese `<label>` se activaría al hacer clic en el texto de la etiqueta, y lo mismo pasa ya con el primer botón de un `Segmented`. `Field` pasa a ser un `<div>`: la etiqueta es un `<label htmlFor>` cuando envuelve un campo y un `<span id>` con `aria-labelledby` en el grupo cuando envuelve un `Segmented`. El "?" va junto a la etiqueta, fuera de ella. `Field` gana la propiedad `help?: HelpId`.
+`Field` es hoy un `<label>` que envuelve a sus hijos (`src/ui/index.tsx:79`). Un botón "?" dentro de ese `<label>` se activaría al hacer clic en el texto de la etiqueta, y lo mismo pasa ya con el primer botón de un `Segmented`. `Field` pasa a ser un `<div>`: la etiqueta es un `<label htmlFor>` cuando envuelve un campo y un `<span id>` con `aria-labelledby` en el grupo cuando envuelve un `Segmented`. El "?" va junto a la etiqueta, fuera de ella. `Field` gana la propiedad `help?: ReactNode`, donde va el `<HelpTip>`. No es un `HelpId` para que la primitiva de `src/ui/` no dependa del catálogo de `src/features/help/`. El `Input` de dentro recibe por contexto el `id` del `<label htmlFor>` y el `aria-describedby` del hint o del error.
 
 ### 2.3 Catálogo: campos de Setup
 

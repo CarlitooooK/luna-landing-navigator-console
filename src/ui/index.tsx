@@ -1,5 +1,5 @@
 // Primitivas de la interfaz (Figma: Glass/Panel, Glass/Raised, Glass/Inset, Button/Primary, Glow/*).
-import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from 'react'
+import { createContext, useContext, useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode } from 'react'
 import { AlertTriangle, Check, X, type LucideIcon } from 'lucide-react'
 import type { MissionStatus } from '@/types'
 import { SIGNAL, type Signal } from './signal'
@@ -74,25 +74,40 @@ export function Segmented<T extends string | number>({ options, value, onChange,
   )
 }
 
-export function Field({ label, children, hint, error, className }: { label: string; children: ReactNode; hint?: string; error?: string; className?: string }) {
+/** Lo que `Field` le pasa a su `Input`: el id del control y el del texto que lo describe (tarea B1). */
+const FieldContext = createContext<{ id: string; describedBy?: string } | null>(null)
+
+/**
+ * Etiqueta, control y texto de ayuda o error. Es un `<div>` y no un `<label>` que envuelve:
+ * así un clic en el texto no activa el primer botón de un `Segmented`, y cabe un botón "?" (`help`) junto a la etiqueta.
+ * El `Input` de dentro toma el id del contexto; un `Segmented` conserva su propio `aria-label`.
+ */
+export function Field({ label, children, hint, error, help, className }: {
+  label: string; children: ReactNode; hint?: string; error?: string; help?: ReactNode; className?: string
+}) {
+  const id = useId()
+  const note = error || hint ? `${id}-note` : undefined
   return (
-    <label className={cx('flex min-w-0 flex-col gap-1.5', className)}>
-      <span className={cx('text-xs font-medium', error ? 'text-nogo' : 'text-ink-3')}>{label}</span>
-      {children}
-      {error ? <span className="flex gap-2 text-xs text-ink"><AlertTriangle size={14} className="mt-px shrink-0 text-nogo" />{error}</span>
-        : hint && <span className="text-xs text-ink-3">{hint}</span>}
-    </label>
+    <div className={cx('flex min-w-0 flex-col gap-1.5', className)}>
+      <span className="flex items-center gap-1">
+        <label htmlFor={id} className={cx('text-xs font-medium', error ? 'text-nogo' : 'text-ink-3')}>{label}</label>{help}
+      </span>
+      <FieldContext.Provider value={{ id, describedBy: note }}>{children}</FieldContext.Provider>
+      {error ? <span id={note} className="flex gap-2 text-xs text-ink"><AlertTriangle size={14} className="mt-px shrink-0 text-nogo" />{error}</span>
+        : hint && <span id={note} className="text-xs text-ink-3">{hint}</span>}
+    </div>
   )
 }
 
 export function Input({ icon: Icon, suffix, invalid, mono, className, ...rest }: InputHTMLAttributes<HTMLInputElement> & {
   icon?: LucideIcon; suffix?: string; invalid?: boolean; mono?: boolean
 }) {
+  const field = useContext(FieldContext)
   return (
     <span className={cx('inset-well flex h-10 items-center gap-2 rounded-xl px-3 ring-1 transition-[box-shadow,background-color] duration-300',
       invalid ? 'bg-nogo/10 ring-nogo' : 'ring-white/10 focus-within:ring-earth/70', className)}>
       {Icon && <Icon size={15} className="shrink-0 text-ink-2" aria-hidden />}
-      <input {...rest} aria-invalid={invalid || undefined}
+      <input id={field?.id} aria-describedby={field?.describedBy} {...rest} aria-invalid={invalid || undefined}
         className={cx('min-w-0 flex-1 bg-transparent text-sm caret-sun outline-none [color-scheme:dark]', mono ? 'tnum font-mono' : 'font-medium')} />
       {suffix && <span className="text-xs text-ink-3">{suffix}</span>}
     </span>
