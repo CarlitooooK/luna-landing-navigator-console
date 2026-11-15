@@ -247,6 +247,10 @@
       --lo 500ms var(--ease-out), --lx 220ms var(--ease-out), --ly 220ms var(--ease-out);
   }
   [data-fullscreen] .peek > .glass[data-peek="inline"] { width: 100%; }
+  /* El timeline espera 1 s antes de plegarse al salir el cursor (o el foco): un roce o una salida corta no lo cierran.
+     Los retrasos siguen el orden de `transition` de arriba: alto, ancho y sombra esperan; la luz (--lo, --lx, --ly) no */
+  [data-fullscreen] .peek > .glass[data-peek="inline"]:not(:hover, :focus-within) { transition-delay: 1s, 1s, 1s, 0s, 0s, 0s; }
+  [data-fullscreen] .peek > .glass[data-peek="inline"]:not(:hover, :focus-within) > :not(:first-child) { transition-delay: 1s; }
   [data-fullscreen] .peek > .glass:is(:hover, :focus-within) {
     height: auto;
     width: 100%;
