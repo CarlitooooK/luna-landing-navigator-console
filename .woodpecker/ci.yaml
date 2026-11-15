@@ -1,0 +1,36 @@
+# CI: every PR and every push to main. GitHub check: ci/woodpecker/<pr|push>/ci
+# (handoff repo docs/07 "Despliegues (CI/CD)", D-018).
+when:
+  - event: pull_request
+  - event: push
+    branch: main
+  # deploy.yaml depends on this workflow, so it must also run on manual deploys.
+  - event: deployment
+
+steps:
+  - name: install
+    image: node:22-alpine
+    commands:
+      - npm ci --no-audit --no-fund --loglevel=error
+
+  - name: lint
+    image: node:22-alpine
+    commands:
+      - npm run lint
+
+  - name: typecheck
+    image: node:22-alpine
+    commands:
+      - npm run typecheck
+
+  - name: test
+    image: node:22-alpine
+    commands:
+      - npm test
+
+  # Build without public URLs: only checks that it compiles. The published build
+  # is made on the server with the URLs of handoff repo docs/07.
+  - name: build
+    image: node:22-alpine
+    commands:
+      - npm run build

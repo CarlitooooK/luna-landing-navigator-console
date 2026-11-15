@@ -1,8 +1,9 @@
 import { useEffect, type RefObject } from 'react'
 import { GLOBE_URL } from '@/core/config'
+import { API_BASE } from '@/core/api/client'
 import { useMissionStore } from '@/core/store/useMissionStore'
 import { useGlobeStore } from '@/core/store/useGlobeStore'
-import { READY_TIMEOUT_MS, comparePins, customPinMessage, fromGlobe, globalPsrItems, horizonMessage, landingMessage, psrItems, skyGlobalMessage, skyMessages, skyStateMessage, toGlobeSites } from './globeBridge'
+import { READY_TIMEOUT_MS, comparePins, customPinMessage, fromGlobe, globalPsrItems, horizonMessage, landingMessage, psrItems, samePlace, skyGlobalMessage, skyMessages, skyStateMessage, toGlobeSites } from './globeBridge'
 import type { ToGlobe } from './globeProtocol'
 
 /**
@@ -25,6 +26,7 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
     const mission = useMissionStore.getState
     let ready = false
     let raf = 0
+    let pauseTimer = 0
 
     globe().setLink('loading')
     const timeout = window.setTimeout(() => { if (!ready) globe().setLink('unavailable') }, READY_TIMEOUT_MS)
@@ -66,7 +68,7 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
     const sendCustomPin = () => post(customPinMessage(mission().selected, mission().sites))
     const sendSites = () => post({ type: 'SET_SITES', payload: toGlobeSites(mission().sites, mission().evaluation) })
     const startLanding = () => {
-      const play = landingMessage(mission().evaluation)
+      const play = landingMessage(mission().evaluation, { astronaut: globe().astronaut })
       if (!play) return globe().setLandingError('Run a simulation first.')
       sendSky() // el Sol y la Tierra reales del paso actual deben llegar antes que la escena
       post(play)
@@ -77,9 +79,11 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
       if (s) post({ type: 'SELECT_SITE', payload: { id: s.id, lat: s.lat, lon: s.lon, label: s.label } })
     }
     const pushAll = () => {
+      post({ type: 'SET_TERRAIN_SOURCE', payload: { baseUrl: API_BASE } })
       sendMode()
       sendSites()
       sendSky()
+      if (mission().viewMode === 'site') post({ type: 'SET_PAUSED', payload: { paused: true } })
       sendPsr()
       sendPins()
       sendCustomPin()
@@ -132,6 +136,16 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
       const moved = !!s.evaluation && (!p.evaluation || p.evaluation.site.lat !== s.evaluation.site.lat || p.evaluation.site.lon !== s.evaluation.site.lon)
       const reran = s.evaluation !== p.evaluation && s.evaluation !== null && moved
       const inScene = globe().landing.requested
+      // Elegir o evaluar otro lugar durante la escena de alunizaje la cierra: el globo vuelve a encuadrar el nuevo.
+      // History no tiene botones de escena, así que entrar ahí también cierra la escena y el horizonte.
+      if (inScene && ((s.selected !== p.selected && s.selected && !samePlace(s.selected, p.selected)) || reran)) { globe().clearLanding(); return }
+      if (s.workspace !== p.workspace && s.workspace === 'history') { globe().clearLanding(); globe().clearHorizon() }
+      // "Terrain detail" tapa el globo: se deja de dibujar debajo (tras el fundido de 500 ms) y se reanuda al volver
+      if (s.viewMode !== p.viewMode) {
+        window.clearTimeout(pauseTimer)
+        if (s.viewMode === 'site') pauseTimer = window.setTimeout(() => post({ type: 'SET_PAUSED', payload: { paused: true } }), 600)
+        else post({ type: 'SET_PAUSED', payload: { paused: false } })
+      }
       if (globe().horizon.requested && !inScene) {
         if (reran) startHorizon()
       } else if (((s.selected !== p.selected && s.selected) || reran) && !inScene) flyToSelected()
@@ -148,6 +162,7 @@ export function useGlobeBridge(frame: RefObject<HTMLIFrameElement | null>) {
 
     return () => {
       window.clearTimeout(timeout)
+      window.clearTimeout(pauseTimer)
       cancelAnimationFrame(raf)
       window.removeEventListener('message', onMessage)
       unsubMission()

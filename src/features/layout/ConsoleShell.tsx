@@ -36,7 +36,7 @@ function Attribution() {
   if (viewMode === 'globe') return null
   return (
     <p className="pointer-events-auto absolute bottom-2 left-1/2 -translate-x-1/2 text-[11px] text-ink-3">
-      Terrain: LRO LOLA (NASA GSFC) · Ephemeris: NASA/JPL Horizons
+      Terrain and ephemeris: Lunar Navigator API · source data: LRO LOLA DEM, JPL DE ephemerides
     </p>
   )
 }

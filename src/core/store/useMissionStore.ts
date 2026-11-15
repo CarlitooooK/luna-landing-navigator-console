@@ -125,7 +125,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     } catch (e) { set({ error: e as ApiError }) }
     // El cielo y las PSR del polo son extras de la vista global: si fallan, el globo sigue sin ellos (no se inventan)
     void get().loadSky()
-    api.psrList({ limit: 100, min_area_km2: PSR_MIN_AREA_KM2, simplify_m: 1000 }).then((polePsrs) => set({ polePsrs })).catch(() => {})
+    api.psrList({ limit: 100, min_area_km2: PSR_MIN_AREA_KM2, simplify_m: 250 }).then((polePsrs) => set({ polePsrs })).catch(() => {})
   },
   loadSky: async () => {
     const seq = ++skySeq
@@ -159,7 +159,7 @@ export const useMissionStore = create<MissionState>((set, get) => ({
       const [ev, tr, ps] = await Promise.allSettled([
         api.evaluate({ lat, lon, start_utc: startUtc, duration_days: durationDays, step_minutes: stepMinutes,
           panel_efficiency: panelEfficiency, panel_area_m2: panelAreaM2 }),
-        samePlace ? Promise.resolve(get().terrain!) : api.terrainPatch({ lat, lon, size_km: 12, resolution: 128 }),
+        samePlace ? Promise.resolve(get().terrain!) : api.terrainPatch({ lat, lon, size_km: 12, resolution: 256 }),
         samePlace ? Promise.resolve(get().psrs) : api.psrNearby({ lat, lon }),
       ])
       if (ev.status === 'rejected') throw ev.reason

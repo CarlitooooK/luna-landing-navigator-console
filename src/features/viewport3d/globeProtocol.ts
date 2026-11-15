@@ -32,6 +32,10 @@ export type ToGlobe =
   | { type: 'SET_HORIZON'; payload: { lat: number; lon: number; profile: { az_deg: number; horizon_el_deg: number }[] } }
   /** Cielo del paso actual del scrubber (campos de `timeline[stepIndex]`). */
   | { type: 'SET_SKY_STATE'; payload: { sun: SkyBody; earth: SkyBody } }
+  /** URL base de la API: el globo pide ahí `GET /terrain/tiles` (relieve real y polo sur sombreado). Sin v1.3 en ese backend, el globo sigue con Moon Trek. */
+  | { type: 'SET_TERRAIN_SOURCE'; payload: { baseUrl: string } }
+  /** Detiene o reanuda el dibujado del globo (mientras "Terrain detail" lo tapa). */
+  | { type: 'SET_PAUSED'; payload: { paused: boolean } }
   | { type: 'SET_HORIZON_DETAIL'; payload: { detailed: boolean } }
   /** Vista de horizonte (Lander POV, docs/05 §5.2): del globo al suelo del sitio. */
   | { type: 'SHOW_HORIZON'; payload: { lat: number; lon: number; headingDeg?: number } }
