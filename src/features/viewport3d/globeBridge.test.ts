@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { comparePins, customPinMessage, fromGlobe, globalPsrItems, horizonMessage, skyGlobalMessage, landingMessage, psrItems, skyMessages, skyStateMessage, toGlobeSites } from './globeBridge'
+import { comparePins, customPinMessage, samePlace, fromGlobe, globalPsrItems, horizonMessage, skyGlobalMessage, landingMessage, psrItems, skyMessages, skyStateMessage, toGlobeSites } from './globeBridge'
 import type { CompareResponse, Ephemeris, Evaluation, PsrList, PsrNearby, Site } from '@/types'
 import type { Scenario } from '@/core/store/useMissionStore'
 
@@ -158,5 +158,20 @@ describe('globalPsrItems', () => {
     const l = { psrs: [{ gid: 1, name: 'X', area_km2: 100, label_point: {}, geometry: { type: 'MultiPolygon', coordinates: [] } }] } as unknown as PsrList
     expect(globalPsrItems(l)).toEqual([{ gid: 1, name: 'X', geometry: { type: 'MultiPolygon', coordinates: [] } }])
     expect(globalPsrItems(null)).toEqual([])
+  })
+})
+
+describe('landingMessage con opciones', () => {
+  it('el astronauta va solo cuando se apaga (el globo lo trae por defecto)', () => {
+    expect(landingMessage(evaluation(), { astronaut: false })).toEqual({ type: 'PLAY_LANDING_SCENE', payload: { lat: -84.79, lon: 31.2, astronaut: false } })
+    expect(landingMessage(evaluation(), { astronaut: true })).toEqual({ type: 'PLAY_LANDING_SCENE', payload: { lat: -84.79, lon: 31.2 } })
+  })
+})
+
+describe('samePlace', () => {
+  it('compara solo lat/lon', () => {
+    expect(samePlace({ lat: -80, lon: 1 }, { lat: -80, lon: 1 })).toBe(true)
+    expect(samePlace({ lat: -80, lon: 1 }, { lat: -80.1, lon: 1 })).toBe(false)
+    expect(samePlace(null, { lat: 0, lon: 0 })).toBe(false)
   })
 })

@@ -32,6 +32,8 @@ export type ToGlobe =
   | { type: 'SET_HORIZON'; payload: { lat: number; lon: number; profile: { az_deg: number; horizon_el_deg: number }[] } }
   /** Cielo del paso actual del scrubber (campos de `timeline[stepIndex]`). */
   | { type: 'SET_SKY_STATE'; payload: { sun: SkyBody; earth: SkyBody } }
+  /** Detiene o reanuda el dibujado del globo (mientras "Terrain detail" lo tapa). */
+  | { type: 'SET_PAUSED'; payload: { paused: boolean } }
   | { type: 'SET_HORIZON_DETAIL'; payload: { detailed: boolean } }
   /** Vista de horizonte (Lander POV, docs/05 §5.2): del globo al suelo del sitio. */
   | { type: 'SHOW_HORIZON'; payload: { lat: number; lon: number; headingDeg?: number } }
