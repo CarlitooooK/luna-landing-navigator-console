@@ -125,7 +125,7 @@ La escena de alunizaje no se lanza sola desde Missions: tras "Replay" aparece la
 
 ## Tour
 
-Siete pasos (seis sin píldoras de escena) en `features/onboarding/`: `Tour.tsx` los pinta, `steps.ts` decide cuáles y con qué texto (`resolveSteps`) y `useOnboardingStore` guarda si ya se vio (ver [`01`](01-arquitectura.md)). Es un `<dialog>` modal: trampa de foco, Esc, la página inerte detrás. Un foco de luz marca el ancla `data-tour` del paso; sin ancla (o si no mide nada) la tarjeta va centrada sobre el velo.
+Siete pasos (seis sin píldoras de escena) en `features/onboarding/`: `Tour.tsx` los pinta, `steps.ts` decide cuáles y con qué texto (`resolveSteps`) y `useOnboardingStore` guarda si ya se vio (ver [`01`](01-arquitectura.md)). Es un `<dialog>` modal: trampa de foco, Esc, la página inerte detrás. Un foco de luz marca el ancla `data-tour` del paso: el resto se atenúa y el ancla lleva un contorno del color del Sol que respira (`tour-breathe`, solo opacidad, 2,4 s). Es un único marco siempre montado que viaja de un ancla a la siguiente en 560 ms (`--ease-out`), recortado a la ventana. Sin ancla (o si no mide nada) se encoge a un punto en el centro, el contorno se apaga y la tarjeta va centrada sobre el velo.
 
 | Paso | Ancla | Acción del paso | Red |
 | --- | --- | --- | --- |
@@ -147,7 +147,7 @@ Siete pasos (seis sin píldoras de escena) en `features/onboarding/`: `Tour.tsx`
 | Al abrir | Pasa a Simulate y sale de pantalla completa (`startTour`) |
 | Al cerrar | El foco vuelve a donde estaba; si se lanzó desde Help en pantalla completa, al botón Help de la TopBar |
 | Mientras está abierto | `F` y `?` no actúan (`hotkeyFor` con `dialog[open]`) |
-| `prefers-reduced-motion` | Sin desplazamiento del foco de luz ni `condense`: fundido de 150 ms |
+| `prefers-reduced-motion` | El marco salta de lugar sin viajar, el contorno no respira y solo se funde (150 ms); la tarjeta entra sin `condense` |
 
 "Next" nunca depende de haber pulsado la acción del paso: el tour se puede recorrer leyendo.
 

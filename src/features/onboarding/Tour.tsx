@@ -19,6 +19,8 @@ import { autoStart, resolveSteps, tourParam, tourScenario, type TourActionId, ty
 const PANELS_SETTLE_MS = 700
 const PAD = 6
 const CARD_W = 340
+/** Duración del viaje del marco entre anclas (design.md §1.4). */
+const FRAME_MS = 560
 
 function useTourInput(): TourInput {
   const m = useMissionStore()
@@ -44,6 +46,14 @@ function useAutoStart() {
     const t = window.setTimeout(() => startTour(start), PANELS_SETTLE_MS)
     return () => window.clearTimeout(t)
   }, [done])
+}
+
+/** Marco del foco de luz: el ancla con `PAD` de aire, sin salirse de la ventana (deja 4 px para el halo). */
+function clipToViewport(r: Box) {
+  const m = 4
+  const top = Math.max(m, r.y - PAD), left = Math.max(m, r.x - PAD)
+  const bottom = Math.min(window.innerHeight - m, r.y + r.height + PAD), right = Math.min(window.innerWidth - m, r.x + r.width + PAD)
+  return { top, left, width: Math.max(0, right - left), height: Math.max(0, bottom - top) }
 }
 
 /** Rectángulo del ancla, o `null` si no está o no mide nada (tarjeta centrada, sin foco de luz). */
@@ -141,18 +151,28 @@ function TourDialog({ index }: { index: number }) {
     }
   }
   const actionLabel = s.action?.id === 'play' && m.playing ? 'Pause' : s.action?.id === 'run' && m.loading ? 'Calculating…' : s.action?.label
-  const move = reduced ? 'opacity 150ms' : 'top 480ms var(--ease-out), left 480ms var(--ease-out), width 480ms var(--ease-out), height 480ms var(--ease-out)'
+  // El marco viaja de un ancla a otra. Sin ancla se encoge a un punto en el centro: el velo cubre todo y el halo se apaga.
+  // Recortado a la ventana: un panel más alto que la pantalla (Results con scroll) no deja el contorno fuera de vista.
+  const frame = rect ? clipToViewport(rect) : { top: window.innerHeight / 2, left: window.innerWidth / 2, width: 0, height: 0 }
+  const move = reduced ? 'none'
+    : ['top', 'left', 'width', 'height', 'border-radius'].map((p) => `${p} ${FRAME_MS}ms var(--ease-out)`).join(', ')
 
   return (
     <dialog ref={dialog} aria-labelledby={`${id}-title`} aria-describedby={`${id}-text`}
       onCancel={(e) => { e.preventDefault(); dismiss() }}
       className="fixed inset-0 m-0 h-full max-h-none w-full max-w-none overflow-hidden bg-transparent p-0 text-ink backdrop:bg-transparent">
-      {/* Foco de luz: el ancla queda nítida y lo demás se atenúa. Sin ancla, solo el velo. */}
-      {rect
-        ? <div aria-hidden className="pointer-events-none fixed rounded-[24px] ring-1 ring-white/40"
-            style={{ top: rect.y - PAD, left: rect.x - PAD, width: rect.width + PAD * 2, height: rect.height + PAD * 2,
-              boxShadow: '0 0 0 100vmax rgb(4 6 10 / 0.6)', transition: move }} />
-        : <div aria-hidden className="pointer-events-none fixed inset-0 bg-[rgb(4_6_10/0.6)]" />}
+      {/* Foco de luz: el ancla queda nítida y lo demás se atenúa (el velo es la sombra de 100vmax del marco).
+          Un solo elemento siempre montado, para que el marco se desplace entre pasos en vez de aparecer y desaparecer.
+          Con reduced motion salta de lugar y el halo solo se funde (design.md §1.4). */}
+      <div aria-hidden className="pointer-events-none fixed"
+        style={{ ...frame, borderRadius: rect ? 24 : 0, boxShadow: '0 0 0 100vmax rgb(4 6 10 / 0.6)', transition: move }}>
+        <div key={reduced ? i : undefined} className="absolute inset-0 rounded-[inherit] transition-opacity duration-300"
+          style={{ opacity: rect ? 1 : 0, animation: reduced ? 'fade-in 150ms both' : undefined }}>
+          {/* Contorno iluminado que respira: anillo nítido y halo del color del Sol, el acento de la marca */}
+          <div className="tour-breathe absolute inset-0 rounded-[inherit]"
+            style={{ boxShadow: '0 0 0 1.5px var(--color-sun), 0 0 14px 2px color-mix(in srgb, var(--color-sun) 55%, transparent), inset 0 0 12px color-mix(in srgb, var(--color-sun) 25%, transparent)' }} />
+        </div>
+      </div>
       <div ref={card} key={reduced ? undefined : i} style={{ width: CARD_W, top: pos?.top ?? -9999, left: pos?.left ?? -9999, transition: reduced ? 'opacity 150ms' : undefined }}
         className={`glass glass-strong fixed flex flex-col gap-3 rounded-[20px] p-[18px] ${reduced ? '' : 'condense'}`}>
         <div className="flex items-start justify-between gap-3">
