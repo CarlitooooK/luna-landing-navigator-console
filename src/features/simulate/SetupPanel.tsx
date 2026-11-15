@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FocusEvent, type KeyboardEvent } from 'react'
 import { Bookmark, BookmarkCheck, ChevronRight, MapPin, Play, Search, Zap } from 'lucide-react'
-import { STEP_OPTIONS, useMissionStore, type SelectedSite } from '@/core/store/useMissionStore'
+import { STEP_OPTIONS, useMissionStore } from '@/core/store/useMissionStore'
+import { toSelected } from '@/core/utils/sites'
 import { parseUtcTime, toUtcIso } from '@/core/utils/time'
 import { fmtCoord } from '@/core/utils/coordinates'
 import { Button, Divider, Field, IconButton, IconWell, Input, Panel, SectionTitle, Segmented } from '@/ui'
@@ -17,7 +18,6 @@ const DURATIONS_DETAILED = [{ value: 7, label: '7 d' }, { value: 14, label: '14 
 const latError = (v: number) => (Number.isFinite(v) && v >= -90 && v <= 90 ? undefined : 'Latitude must be between -90° and 90°.')
 const lonError = (v: number) => (Number.isFinite(v) && v >= -180 && v <= 360 ? undefined : 'Longitude must be between -180° and 360°.')
 
-const toSelected = (s: Site): SelectedSite => ({ id: s.id, lat: s.lat, lon: s.lon, label: s.name, category: s.category })
 
 function SiteSearch() {
   const sites = useMissionStore((s) => s.sites)
@@ -215,7 +215,7 @@ export function SetupPanel() {
   const [mode, setMode] = useState<'catalog' | 'custom'>('catalog')
   const detailed = detail === 'detailed'
   return (
-    <Panel title="Setup" label="Setup" peekAside={selected ? <span className="truncate">{selected.label}</span> : 'No site'}>
+    <Panel title="Setup" label="Setup" tour="setup" peekAside={selected ? <span className="truncate">{selected.label}</span> : 'No site'}>
       <div className="flex flex-col gap-3">
         <SectionTitle aside={detailed && <Segmented size="sm" label="Site source" value={mode} onChange={setMode}
           options={[{ value: 'catalog', label: 'Catalog' }, { value: 'custom', label: 'Custom' }]} className="w-[140px]" />}>

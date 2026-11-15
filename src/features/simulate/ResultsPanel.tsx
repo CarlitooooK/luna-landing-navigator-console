@@ -181,7 +181,7 @@ export function ResultsPanel() {
   const announce = step && evaluation && !stale && !error ? `${evaluation.site.status}. Next step: ${step.text}` : step?.text ?? ''
   const failed = !!error && step?.id.startsWith('error:')
   return (
-    <Panel title="Results" label="Results"
+    <Panel title="Results" label="Results" tour="results"
       peekAside={loading ? 'Calculating…' : error ? <span className="text-nogo">{step?.id === 'offline' ? 'Offline' : 'Failed'}</span> : evaluation ? (stale ? 'Out of date' : <StatusChip small status={evaluation.site.status} />) : 'No run yet'}>
       {!loading && !error && evaluation && stale && <StaleNotice />}
       {loading ? <Loading />

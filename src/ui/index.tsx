@@ -17,13 +17,15 @@ const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).jo
  * Panel de vidrio. En pantalla completa se pliega en una tira con `peek` (título; por defecto el
  * título o el label) y `peekAside` (resumen corto). `peek="inline"`: sin tira, se ve su primera fila.
  */
-export function Panel({ title, aside, children, className, as: Tag = 'section', label, peek, peekAside }: {
+export function Panel({ title, aside, children, className, as: Tag = 'section', label, peek, peekAside, tour }: {
   title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string; as?: 'section' | 'aside' | 'div'; label?: string
   peek?: string | 'inline'; peekAside?: ReactNode
+  /** Ancla del tour (`data-tour`). */
+  tour?: string
 }) {
   const strip = peek === 'inline' ? null : (peek ?? (typeof title === 'string' ? title : label))
   return (
-    <Tag aria-label={label} data-peek={peek === 'inline' ? 'inline' : undefined}
+    <Tag aria-label={label} data-tour={tour} data-peek={peek === 'inline' ? 'inline' : undefined}
       className={cx('glass condense surface-in pointer-events-auto flex flex-col gap-4 rounded-[20px] p-[18px]', className)}>
       {strip && (
         <div className="peek-head" aria-hidden>

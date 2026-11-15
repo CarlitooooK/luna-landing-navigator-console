@@ -12,7 +12,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Simple / Detailed | `TopBar` › `DetailToggle` | `setDetail`. Cambia el contenido de Setup, Results y Timeline; no hace red. Oculto en History |
 | Origen de datos | `TopBar` › `DataSource` | "Connecting", "Live data", "Degraded" u "Offline". El `title` muestra la URL base |
 | Full screen / `F` | `TopBar` y `ConsoleShell` | `toggleFullscreen`. Oculta el rail, cambia la TopBar por una barra flotante (con Simple/Detailed, salvo en History, el origen de datos y Help) y pliega los paneles en tiras (ver [`01`](01-arquitectura.md)). `F` no actúa si el foco está en un campo ni con un `<dialog>` abierto (`hotkeyFor`, `help/shortcuts.ts`) |
-| Help / `?` | `help/HelpMenu.tsx` | Popover de 360 px con el glosario por grupo (`glossaryGroups()`, el mismo texto de los "?", grupos plegables) y los atajos (`SHORTCUTS`). En la barra de pantalla completa el botón solo lleva el ícono y la tecla. `?` lo abre o lo cierra con la misma guarda que `F`; Esc y el clic fuera lo cierran (`popover="auto"`). No hace red |
+| Help / `?` | `help/HelpMenu.tsx` | Popover de 360 px con "Take the tour" (relanza el tour en el paso 2), el glosario por grupo (`glossaryGroups()`, el mismo texto de los "?", grupos plegables) y los atajos (`SHORTCUTS`). En la barra de pantalla completa el botón solo lleva el ícono y la tecla. `?` lo abre o lo cierra con la misma guarda que `F`; Esc y el clic fuera lo cierran (`popover="auto"`). No hace red |
 | Píldoras de escena | `simulate/SceneControls.tsx` | Arriba del área libre en Simulate, Compare y Missions (tabla abajo) |
 | Timeline | `timeline/TimelineDock.tsx` | Abajo en Simulate, Compare y Missions, solo con evaluación (tabla abajo) |
 
@@ -122,3 +122,32 @@ History no tiene píldoras de escena ni timeline.
 | Next step "Open as a new simulation" | Aparece tras el replay (`nextStepMissions`). Pasa a Simulate con la misión ya cargada; "Replay again" queda como botón secundario | No |
 
 La escena de alunizaje no se lanza sola desde Missions: tras "Replay" aparece la píldora "Landing scene" como en Simulate.
+
+## Tour
+
+Siete pasos (seis sin píldoras de escena) en `features/onboarding/`: `Tour.tsx` los pinta, `steps.ts` decide cuáles y con qué texto (`resolveSteps`) y `useOnboardingStore` guarda si ya se vio (ver [`01`](01-arquitectura.md)). Es un `<dialog>` modal: trampa de foco, Esc, la página inerte detrás. Un foco de luz marca el ancla `data-tour` del paso; sin ancla (o si no mide nada) la tarjeta va centrada sobre el velo.
+
+| Paso | Ancla | Acción del paso | Red |
+| --- | --- | --- | --- |
+| 1. Find a safe place to land on the Moon | — | "Take the tour" · "Skip" | No |
+| 2. Where, when, run | `setup` | Sin sitio: "Try Apollo 11" (`select` + `setConfig` con `TOUR_SCENARIO`). Con sitio: "Run simulation" o "Run again" (`evaluate`). Sin backend: ninguna, con nota | Sí, `evaluate()` |
+| 3. The verdict, and why | `results` | — | — |
+| 4. Time is the main control | `timeline`, o centrada sin evaluación | "Play" / "Pause" (`setPlaying`) | No |
+| 5. See it on the ground | `scene` (fila de píldoras) | "Horizon view" (`requestHorizon`) con el globo listo. Sin globo solo describe "Terrain detail" o "Global view". Se omite sin píldoras | No |
+| 6. Two levels of detail | `detail` | "Show Detailed" / "Show Simple" (`setDetail`) | No |
+| 7. Where to go next | `rail` | "Done" | No |
+
+| Situación | Comportamiento |
+| --- | --- |
+| Primera visita (`unseen`) | Se abre en el paso 1 cuando `init()` terminó, bien o mal, y 700 ms después (entrada de los paneles) |
+| Esc, "Skip tour", "Skip" o la X | Cierra y guarda `dismissed` |
+| "Done" | Cierra y guarda `completed` |
+| Help › "Take the tour" o `?tour=1` | Abre en el paso 2, sea cual sea el estado guardado |
+| `?tour=0` | No se abre solo; no toca `localStorage`. Lo usa la herramienta de capturas |
+| Al abrir | Pasa a Simulate y sale de pantalla completa (`startTour`) |
+| Al cerrar | El foco vuelve a donde estaba; si se lanzó desde Help en pantalla completa, al botón Help de la TopBar |
+| Mientras está abierto | `F` y `?` no actúan (`hotkeyFor` con `dialog[open]`) |
+| `prefers-reduced-motion` | Sin desplazamiento del foco de luz ni `condense`: fundido de 150 ms |
+
+"Next" nunca depende de haber pulsado la acción del paso: el tour se puede recorrer leyendo.
+

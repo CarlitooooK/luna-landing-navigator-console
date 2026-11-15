@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { TOUR_SCENARIO, autoStart, migrateOnboarding, resolveSteps, tourParam, tourScenario, type TourInput } from './tour'
+import { TOUR_SCENARIO, autoStart, migrateOnboarding, resolveSteps, tourParam, tourScenario, type TourInput } from './steps'
 
 const SITES = [{ id: 'shackleton-rim', name: 'Shackleton Rim' }, { id: 'apollo-11', name: 'Apollo 11' }]
 const base: TourInput = { selected: null, startUtc: '2026-12-13T00:00:00Z', sites: SITES, evaluated: false, offline: false,
@@ -21,7 +21,8 @@ describe('variantes de design.md §1.3', () => {
   })
   test('con el escenario del tour cargado, su texto propio', () => {
     const s = step({ ...base, selected: { id: 'apollo-11', label: 'Apollo 11' } }, 'setup')!
-    expect(s.text).toMatch(/^Apollo 11 on Dec 13, 2026/)
+    expect(s.text).toMatch(/^Apollo 11 on Dec 13, 2026.*Run the simulation/)
+    expect(step({ ...base, selected: { id: 'apollo-11', label: 'Apollo 11' }, evaluated: true }, 'setup')!.text).toMatch(/Press Next/)
   })
   test('hay evaluación: "Run again"', () => {
     expect(step(ran, 'setup')!.action!.label).toBe('Run again')

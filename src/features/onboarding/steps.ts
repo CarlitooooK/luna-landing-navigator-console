@@ -58,7 +58,9 @@ function setupStep(st: TourInput): TourStep {
   const run = { id: 'run', label: st.evaluated ? 'Run again' : 'Run simulation' } as const
   const onScenario = st.selected.id === TOUR_SCENARIO.siteId && st.startUtc === TOUR_SCENARIO.startUtc
   return { ...base, action: run,
-    text: onScenario ? 'Apollo 11 on Dec 13, 2026: a good window. Run the simulation to see why.' : `You picked ${st.selected.label}. ${SETUP_TAIL}` }
+    text: !onScenario ? `You picked ${st.selected.label}. ${SETUP_TAIL}`
+      : st.evaluated ? 'Apollo 11 on Dec 13, 2026: a good window. Press Next to see why.'
+      : 'Apollo 11 on Dec 13, 2026: a good window. Run the simulation to see why.' }
 }
 
 function sceneStep(st: TourInput): TourStep | null {

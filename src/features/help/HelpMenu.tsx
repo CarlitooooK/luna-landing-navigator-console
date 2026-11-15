@@ -1,21 +1,16 @@
 // Botón Help de la barra superior y de la de pantalla completa (spec de onboarding, design.md §2.6, tarea D1).
 // Abre un popover con el glosario (el mismo texto de los "?") y los atajos. La tecla "?" lo abre desde ConsoleShell.
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { CircleHelp } from 'lucide-react'
-import { Kbd } from '@/ui'
+import { useEffect, useId, useRef, useState } from 'react'
+import { CircleHelp, Compass } from 'lucide-react'
+import { Button, Kbd } from '@/ui'
+import { RELAUNCH_STEP } from '@/features/onboarding/steps'
+import { startTour } from '@/features/onboarding/startTour'
 import { place } from '@/ui/place'
 import { glossaryGroups } from './glossary'
 import { SHORTCUTS } from './shortcuts'
 
-const BUTTON = '[data-help-button]'
-
-/** Abre o cierra el menú Help que esté montado (solo hay uno: TopBar o FullscreenBar). */
-export function toggleHelp() {
-  document.querySelector<HTMLButtonElement>(BUTTON)?.click()
-}
-
 /** `compact`: solo ícono y tecla, para la barra de pantalla completa, que no tiene ancho para el texto. */
-export function HelpMenu({ children, compact }: { children?: ReactNode; compact?: boolean }) {
+export function HelpMenu({ compact }: { compact?: boolean }) {
   const id = useId()
   const button = useRef<HTMLButtonElement>(null)
   const menu = useRef<HTMLDivElement>(null)
@@ -52,7 +47,9 @@ export function HelpMenu({ children, compact }: { children?: ReactNode; compact?
         {/* Sin `flex` en el popover: una clase display le gana al `display: none` del navegador y se vería cerrado */}
         <div className="flex flex-col gap-4">
         <h2 id={`${id}-title`} className="sr-only">Help</h2>
-        {children}
+        {/* Relanza el tour desde el paso 2; al cerrarlo, el foco vuelve a este botón Help (design.md §1.5) */}
+        <Button variant="secondary" icon={Compass} className="h-10 justify-start"
+          onClick={() => { menu.current?.hidePopover(); startTour(RELAUNCH_STEP, button.current) }}>Take the tour</Button>
         <section aria-labelledby={`${id}-glossary`} className="flex flex-col gap-2">
           <h3 id={`${id}-glossary`} className="text-[11px] font-bold tracking-wide text-ink-3 uppercase">Glossary</h3>
           {glossaryGroups().map((g) => (

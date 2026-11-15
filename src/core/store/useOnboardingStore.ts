@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
-import { migrateOnboarding, type OnboardingPersisted, type TourStatus } from '@/features/onboarding/tour'
+import { migrateOnboarding, type OnboardingPersisted, type TourStatus } from '@/features/onboarding/steps'
 
 /**
  * Si la persona ya vio el tour (spec de onboarding, design.md §1.7, tarea D2). Solo en este dispositivo.

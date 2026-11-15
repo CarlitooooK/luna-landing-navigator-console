@@ -93,7 +93,7 @@ Lo escribe **solo** el puente (`useGlobeBridge`) y los botones de escena (`Scene
 
 ### `useOnboardingStore` (tour, persistente)
 
-`zustand/persist` en `localStorage`, clave `lunar-navigator.onboarding`, versión 1. Solo guarda `tour: { status, at }`, con `status` en `unseen`, `dismissed` o `completed`; el paso abierto (`step`) no se guarda. `migrateOnboarding()` (`features/onboarding/tour.ts`) normaliza lo guardado sin `version` o con un estado desconocido a `unseen`. Qué pasos tocan y con qué texto lo decide la función pura `resolveSteps()` del mismo archivo.
+`zustand/persist` en `localStorage`, clave `lunar-navigator.onboarding`, versión 1. Solo guarda `tour: { status, at }`, con `status` en `unseen`, `dismissed` o `completed`; el paso abierto (`step`) no se guarda. `migrateOnboarding()` (`features/onboarding/steps.ts`) normaliza lo guardado sin `version` o con un estado desconocido a `unseen`. Qué pasos tocan y con qué texto lo decide la función pura `resolveSteps()` del mismo archivo.
 
 ## Qué pasa al pulsar "Run simulation"
 

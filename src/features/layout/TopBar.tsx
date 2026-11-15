@@ -27,7 +27,7 @@ function DetailToggle() {
   const detail = useMissionStore((s) => s.detail)
   const setDetail = useMissionStore((s) => s.setDetail)
   return (
-    <span className="flex items-center gap-1">
+    <span data-tour="detail" className="flex items-center gap-1">
       <Segmented label="Detail level" value={detail} onChange={(v) => withViewTransition(() => setDetail(v))}
         options={[{ value: 'simple', label: 'Simple' }, { value: 'detailed', label: 'Detailed' }]} className="w-[180px]" />
       <Help id="detail-level" />

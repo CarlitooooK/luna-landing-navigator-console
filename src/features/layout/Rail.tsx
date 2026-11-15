@@ -17,7 +17,7 @@ export function Rail() {
   const setWorkspace = useMissionStore((s) => s.setWorkspace)
   const { box, glider, style } = useGlider<HTMLElement>(workspace)
   return (
-    <nav ref={box} aria-label="Workspaces" className="glass condense pointer-events-auto relative flex w-[72px] flex-col items-center gap-1.5 rounded-[22px] py-3.5 [--from-x:calc(var(--drift)*-1)] [view-transition-name:vt-rail]">
+    <nav ref={box} aria-label="Workspaces" data-tour="rail" className="glass condense pointer-events-auto relative flex w-[72px] flex-col items-center gap-1.5 rounded-[22px] py-3.5 [--from-x:calc(var(--drift)*-1)] [view-transition-name:vt-rail]">
       <span className="mb-3.5" title="Lunar Navigator"><Logo /></span>
       <span ref={glider} aria-hidden className={`${GLIDER} rounded-[14px]`} style={style} />
       {WORKSPACES.map(({ id, label, icon: Icon }) => {
