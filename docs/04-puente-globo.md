@@ -40,7 +40,9 @@ El globo es una app aparte (CesiumJS) que la consola incrusta en un iframe (D-01
 | `SHOW_HORIZON` | Tras `SET_HORIZON` y el cielo, al pasar `horizon.requested` a `true`; en `READY` si ya estaba pedida | `{lat, lon}` de `evaluation.site`. El globo baja de la esfera al suelo |
 | `EXIT_HORIZON` | Al pasar `horizon.requested` a `false` (salvo si empieza la escena de alunizaje, que cierra el horizonte sola) | — |
 | `PLAY_LANDING_SCENE` | Al pasar `landing.requested` a `true`, o en `READY` si ya estaba pedida | `{lat, lon}` de `evaluation.site`, más `astronaut: false` si el interruptor "Astronaut" está apagado. Antes se reenvían Sol y Tierra del paso actual |
-| `STOP_LANDING_SCENE` | Al pasar `landing.requested` a `false` ("Exit scene" o error) | — |
+| `STOP_LANDING_SCENE` | Al pasar `landing.requested` a `false` ("Exit scene" o error). Se manda antes de abrir el horizonte si los dos cambian juntos | — |
+
+Al terminar un `evaluate()` lanzado con `runSimulation()` (ver [`05`](05-pantallas.md)), la consola pide la vista de horizonte en lugar de `SELECT_SITE`: `SET_HORIZON` y `SHOW_HORIZON` con el sitio nuevo.
 
 Declarados pero sin uso hoy: `RESET`. Existen en el globo y la consola no los usa: `SET_VIEW`, `LOOK_AT`, `VIEW_FROM_SURFACE`, `SET_VEHICLES`, `VIEW_VEHICLE`, `SET_TRAJECTORY`, `FOLLOW_TRAJECTORY`, `PLAY_ANIMATION`.
 

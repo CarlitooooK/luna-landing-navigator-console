@@ -123,6 +123,12 @@ History no tiene píldoras de escena ni timeline.
 
 La escena de alunizaje no se lanza sola desde Missions: tras "Replay" aparece la píldora "Landing scene" como en Simulate.
 
+### Vista de horizonte al simular
+
+"Run simulation" (Simulate), "Replay landing window" (Missions), "Run again" / "Try again" del Next step y la acción del paso 2 del tour pasan por `simulate/runSimulation.ts`. Con el globo listo, este arma `horizonNext` antes de `evaluate()` y, al llegar la evaluación, el puente pide la vista de horizonte en lugar de volar sobre el sitio. Compare y History no la arman: siguen volando al sitio. Sin globo (`loading` o `unavailable`) no se arma nada.
+
+El suelo sigue la luz del paso del timeline con un fundido de 350 ms. Sin Sol sobre el horizonte queda en penumbra (la mitad del brillo diurno), nunca en negro.
+
 ## Tour
 
 Siete pasos (seis sin píldoras de escena) en `features/onboarding/`: `Tour.tsx` los pinta, `steps.ts` decide cuáles y con qué texto (`resolveSteps`) y `useOnboardingStore` guarda si ya se vio (ver [`01`](01-arquitectura.md)). Es un `<dialog>` modal: trampa de foco, Esc, la página inerte detrás. Un foco de luz marca el ancla `data-tour` del paso: el resto se atenúa y el ancla lleva un contorno del color del Sol que respira (`tour-breathe`, solo opacidad, 2,4 s). Es un único marco siempre montado que viaja de un ancla a la siguiente en 560 ms (`--ease-out`), recortado a la ventana. Sin ancla (o si no mide nada) se encoge a un punto en el centro, el contorno se apaga y la tarjeta va centrada sobre el velo.
@@ -133,7 +139,7 @@ Siete pasos (seis sin píldoras de escena) en `features/onboarding/`: `Tour.tsx`
 | 2. Where, when, run | `setup` | Sin sitio: "Try Apollo 11" (`select` + `setConfig` con `TOUR_SCENARIO`). Con sitio: "Run simulation" o "Run again" (`evaluate`). Sin backend: ninguna, con nota | Sí, `evaluate()` |
 | 3. The verdict, and why | `results` | — | — |
 | 4. Time is the main control | `timeline`, o centrada sin evaluación | "Play" / "Pause" (`setPlaying`) | No |
-| 5. See it on the ground | `scene` (fila de píldoras) | "Horizon view" (`requestHorizon`) con el globo listo. Sin globo solo describe "Terrain detail" o "Global view". Se omite sin píldoras | No |
+| 5. See it on the ground | `scene` (fila de píldoras) | "Horizon view" (`requestHorizon`) con el globo listo. Si el horizonte ya está abierto (lo abrió el paso 2), describe la vista y no lleva botón. Sin globo solo describe "Terrain detail" o "Global view". Se omite sin píldoras | No |
 | 6. Two levels of detail | `detail` | "Show Detailed" / "Show Simple" (`setDetail`) | No |
 | 7. Where to go next | `rail` | "Done" | No |
 

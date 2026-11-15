@@ -27,6 +27,12 @@ interface GlobeState {
   setPhase: (p: ScenePhase) => void
   setTelemetry: (altM: number, vMps: number) => void
   setLandingError: (reason: string) => void
+  /**
+   * La próxima evaluación abre Horizon view (lo arma "Run simulation" en Simulate y el replay de Missions,
+   * decisión del usuario del 2026-11-15). Lo consume el puente al llegar la evaluación.
+   */
+  horizonNext: boolean
+  armHorizon: (on: boolean) => void
 }
 
 export const useGlobeStore = create<GlobeState>((set) => ({
@@ -45,4 +51,6 @@ export const useGlobeStore = create<GlobeState>((set) => ({
   setPhase: (phase) => set((s) => ({ landing: { ...s.landing, phase } })),
   setTelemetry: (altM, vMps) => set((s) => ({ landing: { ...s.landing, altM, vMps } })),
   setLandingError: (error) => set((s) => ({ landing: { ...s.landing, error, requested: false } })),
+  horizonNext: false,
+  armHorizon: (horizonNext) => set({ horizonNext }),
 }))
