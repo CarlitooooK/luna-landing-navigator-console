@@ -94,7 +94,10 @@ export function FullscreenBar() {
           )
         })}
       </nav>
-      <div className="fs-dim glass pointer-events-auto flex items-center gap-2 justify-self-end rounded-full p-1"><FullscreenButton /></div>
+      {/* Simple/Detailed y el origen de datos también en pantalla completa: es el modo de la demo y el video (tarea A6) */}
+      <div className="fs-dim glass pointer-events-auto flex items-center gap-2 justify-self-end rounded-full p-1 pl-1.5">
+        {workspace !== 'history' && <DetailToggle />}<DataSource /><FullscreenButton />
+      </div>
     </div>
   )
 }

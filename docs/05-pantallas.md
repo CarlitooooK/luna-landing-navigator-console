@@ -11,7 +11,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Ícono de conexión | `layout/ConnectionStatus.tsx` | Aparece solo si no hay `health` y el error es `ERR_NETWORK`. Al pasar el puntero explica la caída, cuenta 20 s y reintenta `init()`. "Retry now" reintenta ya |
 | Simple / Detailed | `TopBar` › `DetailToggle` | `setDetail`. Cambia el contenido de Setup, Results y Timeline; no hace red. Oculto en History |
 | Origen de datos | `TopBar` › `DataSource` | "Connecting", "Live data", "Degraded" u "Offline". El `title` muestra la URL base |
-| Full screen / `F` | `TopBar` y `ConsoleShell` | `toggleFullscreen`. Oculta el rail, cambia la TopBar por una barra flotante y pliega los paneles en tiras (ver [`01`](01-arquitectura.md)). `F` no actúa si el foco está en un campo |
+| Full screen / `F` | `TopBar` y `ConsoleShell` | `toggleFullscreen`. Oculta el rail, cambia la TopBar por una barra flotante (con Simple/Detailed, salvo en History, y el origen de datos) y pliega los paneles en tiras (ver [`01`](01-arquitectura.md)). `F` no actúa si el foco está en un campo |
 | Píldoras de escena | `simulate/SceneControls.tsx` | Arriba del área libre en Simulate, Compare y Missions (tabla abajo) |
 | Timeline | `timeline/TimelineDock.tsx` | Abajo en Simulate, Compare y Missions, solo con evaluación (tabla abajo) |
 
