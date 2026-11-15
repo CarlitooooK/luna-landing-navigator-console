@@ -128,3 +128,9 @@ export function nextStepMissions(s: { picked: boolean; replayed: boolean }): Nex
   if (s.picked && s.replayed) return { id: 'missions:replayed', tone: 'ink', text: 'Watch it on the timeline, or keep exploring from this landing.', action: A('open-as-simulation', 'Open as a new simulation') }
   return null
 }
+
+/**
+ * ¿La acción de Next step es la tecla luminosa de Simulate? (design.md §3.1: una sola por pantalla.)
+ * Sí con resultados vigentes o con un error que la acción resuelve; si no, la luminosa es "Run simulation".
+ */
+export const stepIsPrimary = (s: { hasAction: boolean; fresh: boolean; hasError: boolean }) => s.hasAction && (s.fresh || s.hasError)

@@ -188,7 +188,7 @@ Un bloque **"Next step"**, uno solo por pantalla, siempre en el mismo lugar de c
 
 - **Forma:** superficie `raised` de radio 14 px, con `IconWell` del color de señal del estado, el rótulo "Next step" (`text-xs text-ink-3`), una frase (`text-[13px] text-ink`) y un botón de acción como máximo, más un enlace secundario opcional.
 - **Énfasis sin romper el vidrio:** al aparecer tras un cálculo hace `ignite` una vez (dos pulsos de retroiluminación, ya existe). No hay franja lateral de color ni fondo saturado ni color nuevo.
-- **Una sola tecla luminosa:** el único `btn-primary` de la pantalla es siempre la acción que toca. Antes de simular es "Run simulation". Con resultados vigentes, "Run simulation" baja a `raised` y la acción de la sugerencia toma el `btn-primary`.
+- **Una sola tecla luminosa:** el único `btn-primary` de los paneles es siempre la acción que toca (el botón redondo de Play del timeline conserva su estilo: es un control de reproducción, no una acción del flujo). Antes de simular es "Run simulation". Con resultados vigentes, "Run simulation" baja a `raised` y la acción de la sugerencia toma el `btn-primary`.
 - **Lector de pantalla:** una región `aria-live="polite"` anuncia veredicto y sugerencia al terminar el cálculo, por ejemplo: "NO-GO. Critical slope. Next step: try a nearby site."
 
 Qué sugerencia toca lo decide una función pura `nextStep(state)` en `src/features/suggest/nextStep.ts`.

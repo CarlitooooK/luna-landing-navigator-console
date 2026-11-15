@@ -51,12 +51,14 @@ Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CL
 
 | Estado | Contenido |
 | --- | --- |
-| Sin corrida | Instrucción para empezar |
+| Sin corrida | Solo "Next step": sin sitio, "Browse sites" o "Replay a real mission"; con sitio, "Ready: {sitio}, {fecha}, {n} days." |
 | Calculando | Esqueleto y "Tracing the 360° horizon…" |
-| Error | `ErrorNotice` por código |
+| Error | "Simulation failed" y "Next step" con la frase y la acción del código (`nextStepSimulate`). Sin conexión (sin `/health` y `ERR_NETWORK`) no dice "Simulation failed": dice que el servidor no responde y ofrece "Retry now" |
 | Desactualizado | Si el sitio o algún parámetro cambió desde la última corrida (`evaluatedFor` del store, `isStale` de `core/utils/stale.ts`): aviso "Out of date. These results are for {sitio}, {fecha}…", resultados al 60 % y la tira plegada dice "Out of date" |
 | Simple | Chip de estado y titular llano; "Daylight" y "Talk to Earth" (cuenta atrás y % en vista). La cuenta la decide `countdown()` (`core/utils/countdown.ts`): "until sunset" si el astro está visible al inicio, "until sunrise" o "until Earth rises" si empieza oculto, "No sunlight…" o "Earth never in view" con 0 %, y "No sunset…" o "Earth stays in view" si no se pone. Un porcentaje entre 0 y 1 se muestra "<1%"; "Solar power now" (`power_factor` del paso actual); "Ground" (pendiente y distancia a la PSR) |
 | Detailed | Chip y el porqué del veredicto (`verdictReasons` de `core/utils/verdict.ts`): con `site.checks`, "{n} checks from the server", del más grave al menos grave, con ícono y `message` en inglés; sin ellos (v1.1), `reasons` con el rótulo "Server notes (in Spanish)" y `lang="es"`. En Simple, los checks reemplazan al párrafo genérico del titular; tabla Sol/Tierra del paso actual (estado, azimut, elevación, horizonte, holgura = elevación − horizonte); % visibles, tramo continuo más largo, próximos ocasos; energía (factor actual, promedio, pico en W); terreno (elevación, pendiente, PSR) |
+
+**Next step** (`features/suggest/`): al final de Results, una sola sugerencia con su acción (`nextStepSimulate`, `useStepActions`). Con resultados vigentes o con un error, su acción es la tecla luminosa y "Run simulation" baja a secundario (`stepIsPrimary`). "Compare dates" agrega el sitio actual en su fecha, +7 y +14 días, pasa a Compare y compara (`compareDates`); "Compare sites" agrega el escenario actual y enfoca el sitio de Compare (`compareSites`). Una región `aria-live` anuncia el veredicto y la sugerencia.
 
 "Solar power now" y la tabla del paso actual cambian con el scrubber. Todo lo demás es el resumen de la corrida.
 

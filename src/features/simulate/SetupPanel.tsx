@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState, type FocusEvent, type KeyboardEvent } from 'react'
 import { Bookmark, BookmarkCheck, ChevronRight, MapPin, Play, Search, Zap } from 'lucide-react'
 import { STEP_OPTIONS, useMissionStore, type SelectedSite } from '@/core/store/useMissionStore'
-import { useHistoryStore } from '@/core/store/useHistoryStore'
 import { parseUtcTime, toUtcIso } from '@/core/utils/time'
 import { fmtCoord } from '@/core/utils/coordinates'
-import { isStale } from '@/core/utils/stale'
 import { Button, Divider, Field, IconButton, IconWell, Input, Panel, SectionTitle, Segmented } from '@/ui'
 import type { Site } from '@/types'
 import { isComboboxKey, moveActive, type ComboboxKey } from './combobox'
+import { useSaveRun } from './useSaveRun'
+import { useSimulateStep } from '@/features/suggest/useSimulateStep'
 import { Help } from '@/features/help/Help'
 
 const DURATIONS_SIMPLE = [{ value: 7, label: '7 days' }, { value: 14, label: '14 days' }, { value: 29.5, label: 'Full cycle' }]
@@ -181,30 +181,22 @@ function SolarPanels({ detailed }: { detailed: boolean }) {
 }
 
 function RunBar({ detailed }: { detailed: boolean }) {
-  const { selected, loading, evaluate, lastRunMs, evaluation, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency, evaluatedFor } = useMissionStore()
-  const save = useHistoryStore((s) => s.save)
-  const [saved, setSaved] = useState<'saved' | 'duplicate' | null>(null)
-  useEffect(() => { if (!saved) return; const t = setTimeout(() => setSaved(null), 2500); return () => clearTimeout(t) }, [saved])
+  const { selected, loading, evaluate, lastRunMs, evaluation } = useMissionStore()
+  const { canSave, stale, saved, save: onSave, message } = useSaveRun()
+  // Una sola tecla luminosa (design.md §3.1): con resultados vigentes y una próxima acción, Run simulation baja a secundario.
+  const { primaryIsStep } = useSimulateStep()
   const n = evaluation?.timeline.length
-  // Solo se guarda la corrida que está en pantalla con sus parámetros: si Results quedó desactualizado, primero hay que volver a correrla.
-  const stale = isStale({ lat: selected?.lat, lon: selected?.lon, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency }, evaluatedFor)
-  const canSave = !!evaluation && !!selected && !stale
-  const onSave = () => {
-    if (!canSave) return
-    const run = save({ site: selected, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency, evaluation })
-    setSaved(run ? 'saved' : 'duplicate')
-  }
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
-        <Button variant="primary" icon={Play} iconFill className={loading ? 'flex-1 shimmer' : 'flex-1'} disabled={!selected || loading} onClick={() => void evaluate()}>
+        <Button variant={primaryIsStep ? 'secondary' : 'primary'} icon={Play} iconFill className={loading ? 'flex-1 shimmer' : 'flex-1'} disabled={!selected || loading} onClick={() => void evaluate()}>
           {loading ? 'Calculating…' : 'Run simulation'}
         </Button>
         <IconButton icon={saved === 'saved' ? BookmarkCheck : Bookmark} label={stale ? 'Run the simulation again to save it' : 'Save to history'} disabled={!canSave}
           className="raised size-11 text-ink disabled:opacity-40" onClick={onSave} />
       </div>
       <p role="status" aria-live="polite" className="min-h-0 text-xs text-ink-2 empty:hidden">
-        {saved === 'saved' ? 'Saved to history.' : saved === 'duplicate' ? 'Already in history.' : ''}
+        {message}
       </p>
       {lastRunMs != null && n != null && (
         <p className={detailed ? 'tnum font-mono text-[11px] text-ink-3' : 'text-xs text-ink-3'}>

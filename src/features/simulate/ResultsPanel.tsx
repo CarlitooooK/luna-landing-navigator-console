@@ -5,6 +5,9 @@ import { isStale } from '@/core/utils/stale'
 import { verdictReasons, type Level } from '@/core/utils/verdict'
 import { Help } from '@/features/help/Help'
 import type { HelpId } from '@/features/help/glossary'
+import { NextStepBlock } from '@/features/suggest/NextStepBlock'
+import { useSimulateStep } from '@/features/suggest/useSimulateStep'
+import { useStepActions } from '@/features/suggest/useStepActions'
 import { deg, formatHours, hoursShort, pct, pctWhole } from '@/core/utils/timeline'
 import { formatUtc } from '@/core/utils/time'
 import { Divider, Flow, IconWell, Meter, Panel, SectionTitle, Skeleton, StatusChip, type Signal } from '@/ui'
@@ -198,15 +201,22 @@ export function ResultsPanel() {
   const loading = useMissionStore((s) => s.loading)
   const error = useMissionStore((s) => s.error)
   const stale = useStale()
+  const { step, primaryIsStep } = useSimulateStep()
+  const act = useStepActions()
+  // Anuncio para lector de pantalla al terminar una corrida: veredicto y próxima acción (design.md §3.1).
+  const announce = step && evaluation && !stale && !error ? `${evaluation.site.status}. Next step: ${step.text}` : step?.text ?? ''
+  const failed = !!error && step?.id.startsWith('error:')
   return (
     <Panel title="Results" label="Results"
-      peekAside={loading ? 'Calculating…' : error ? <span className="text-nogo">Failed</span> : evaluation ? (stale ? 'Out of date' : <StatusChip small status={evaluation.site.status} />) : 'No run yet'}>
+      peekAside={loading ? 'Calculating…' : error ? <span className="text-nogo">{step?.id === 'offline' ? 'Offline' : 'Failed'}</span> : evaluation ? (stale ? 'Out of date' : <StatusChip small status={evaluation.site.status} />) : 'No run yet'}>
       {!loading && !error && evaluation && stale && <StaleNotice />}
       {loading ? <Loading />
-        : error ? <ErrorNotice />
-        : !evaluation ? <p className="text-[13px] leading-[19px] text-ink-2">Choose a landing site and a date, then run the simulation to see sunlight, the link to Earth and the ground.</p>
-        : <div className={`flex flex-col gap-4 transition-opacity duration-300 ${stale ? 'opacity-60' : ''}`}>{detail === 'detailed' ? <Detailed /> : <Simple />}</div>}
+        : failed ? <p role="alert" className="text-[13px] font-bold text-nogo">Simulation failed</p>
+        : evaluation && !error ? <div className={`flex flex-col gap-4 transition-opacity duration-300 ${stale ? 'opacity-60' : ''}`}>{detail === 'detailed' ? <Detailed /> : <Simple />}</div>
+        : null}
       {!loading && !error && evaluation && <AuxNotice />}
+      {/* Una sola sugerencia, siempre al final de Results; sin conexión, con error o sin corrida, es lo único que se ve */}
+      {step && <NextStepBlock step={step} onAction={act} primary={primaryIsStep || (!evaluation && !error)} announce={announce} />}
     </Panel>
   )
 }
@@ -235,23 +245,3 @@ function AuxNotice() {
   return <p role="status" className="text-xs text-caution">The verdict is complete, but {what} could not be loaded. Run again to retry.</p>
 }
 
-/** Decide por `code`, nunca por el mensaje (AGENTS.md del handoff). */
-function ErrorNotice() {
-  const error = useMissionStore((s) => s.error)!
-  const text: Record<string, string> = {
-    ERR_NETWORK: 'The simulation server is unreachable. Check the connection and try again.',
-    ERR_UPSTREAM_SERVICE: 'The ephemeris service did not answer. Try again in a moment.',
-    ERR_INVALID_COORDINATES: 'Those coordinates are outside the supported area.',
-    ERR_INVALID_PAYLOAD: 'Some inputs are not valid. Review the setup and run again.',
-    ERR_DATE_OUT_OF_RANGE: 'That date is outside the available ephemeris range.',
-    ERR_TERRAIN_UNAVAILABLE: 'There is no terrain data for this spot. Try a nearby catalog site.',
-    ERR_NOT_FOUND: 'The console is calling an API route that does not exist. Check the /api/v1 base URL.',
-  }
-  return (
-    <div role="alert" className="flex flex-col gap-1.5 rounded-xl bg-nogo/10 p-3 ring-1 ring-nogo/40">
-      <span className="text-[13px] font-bold">Simulation failed</span>
-      <span className="text-xs text-ink-2">{text[error.code] ?? 'Something went wrong. Try again.'}</span>
-      <span className="tnum font-mono text-[11px] text-ink-3">{error.code}</span>
-    </div>
-  )
-}

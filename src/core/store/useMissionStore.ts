@@ -6,6 +6,7 @@ import { ApiError } from '@/core/api/errors'
 import { toUtcIso } from '@/core/utils/time'
 import type { Priority } from '@/core/utils/compare'
 import type { RunParams } from '@/core/utils/stale'
+import { atMidnight, dateVariants } from '@/core/utils/scenarios'
 import type { CompareResponse, Ephemeris, Evaluation, HealthResponse, PsrList, PsrNearby, Site, TerrainPatch } from '@/types'
 
 export type Workspace = 'simulate' | 'compare' | 'history' | 'missions'
@@ -87,6 +88,10 @@ interface MissionState {
   setPlaying: (p: boolean) => void
 
   addScenario: (s: Omit<Scenario, 'key'>) => boolean
+  /** "Compare dates": el sitio actual en su fecha, +7 y +14 días (D5); pasa a Compare y compara (tarea C3). */
+  compareDates: () => Promise<void>
+  /** "Compare sites": agrega el escenario actual y pasa a Compare para sumar otros sitios (tarea C3). */
+  compareSites: () => void
   removeScenario: (key: string) => void
   compare: () => Promise<void>
   showScenario: (key: string) => Promise<void>
@@ -179,6 +184,21 @@ export const useMissionStore = create<MissionState>((set, get) => ({
     if (scenarios.length >= MAX_SCENARIOS || scenarios.some((x) => sameScenario(x, s))) return false
     set({ scenarios: [...scenarios, { ...s, key: `s${++scenarioSeq}` }], comparison: null })
     return true
+  },
+  compareDates: async () => {
+    const { selected, startUtc, scenarios, addScenario } = get()
+    if (!selected) return
+    const mine = scenarios.filter((x) => x.site.lat === selected.lat && x.site.lon === selected.lon).map((x) => x.startUtc)
+    for (const d of dateVariants(atMidnight(startUtc), [7, 14], mine, MAX_SCENARIOS - scenarios.length)) {
+      addScenario({ label: `${selected.label} (${d.slice(0, 10)})`, site: selected, startUtc: d })
+    }
+    set({ workspace: 'compare' })
+    if (get().scenarios.length >= 2) await get().compare()
+  },
+  compareSites: () => {
+    const { selected, startUtc, addScenario } = get()
+    if (selected) addScenario({ label: `${selected.label} (${startUtc.slice(0, 10)})`, site: selected, startUtc: atMidnight(startUtc) })
+    set({ workspace: 'compare' })
   },
   removeScenario: (key) => set((st) => ({
     scenarios: st.scenarios.filter((x) => x.key !== key), comparison: null,

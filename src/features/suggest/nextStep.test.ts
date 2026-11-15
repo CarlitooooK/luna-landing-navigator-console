@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { nextStepCompare, nextStepHistory, nextStepMissions, nextStepSimulate, worstCheck, type CheckLite, type SimulateState } from './nextStep'
+import { stepIsPrimary, nextStepCompare, nextStepHistory, nextStepMissions, nextStepSimulate, worstCheck, type CheckLite, type SimulateState } from './nextStep'
 
 const base: SimulateState = { offline: false, loading: false, site: 'Apollo 11', startUtc: '2026-12-13T00:00:00Z', durationDays: 14, error: null, stale: false, verdict: null }
 const sim = (o: Partial<SimulateState>) => nextStepSimulate({ ...base, ...o })
@@ -86,4 +86,16 @@ describe('Compare, History y Missions (§3.6)', () => {
     expect(nextStepMissions({ picked: true, replayed: true })?.action?.id).toBe('open-as-simulation')
     expect(nextStepMissions({ picked: true, replayed: false })).toBeNull()
   })
+})
+
+describe('una sola tecla luminosa (§3.1)', () => {
+  test('antes de simular o desactualizado, la luminosa es Run simulation', () => {
+    expect(stepIsPrimary({ hasAction: false, fresh: false, hasError: false })).toBe(false)
+    expect(stepIsPrimary({ hasAction: true, fresh: false, hasError: false })).toBe(false)
+  })
+  test('con resultados vigentes o con un error, la luminosa es la acción de Next step', () => {
+    expect(stepIsPrimary({ hasAction: true, fresh: true, hasError: false })).toBe(true)
+    expect(stepIsPrimary({ hasAction: true, fresh: false, hasError: true })).toBe(true)
+  })
+  test('sin acción, nunca', () => expect(stepIsPrimary({ hasAction: false, fresh: true, hasError: true })).toBe(false))
 })
