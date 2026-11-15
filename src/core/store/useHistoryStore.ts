@@ -16,6 +16,9 @@ export interface HistoryRun {
   startUtc: string
   durationDays: number
   stepMinutes: number
+  /** Paneles de la corrida. Faltan en las corridas guardadas antes de la tarea A7. */
+  panelAreaM2?: number
+  panelEfficiency?: number
   status: string
   summary: Evaluation['summary']
   starred: boolean
@@ -26,19 +29,36 @@ export const HISTORY_LIMIT = 100
 
 interface HistoryState {
   runs: HistoryRun[]
-  save: (r: { site: SelectedSite; startUtc: string; durationDays: number; stepMinutes: number; evaluation: Evaluation }) => HistoryRun
+  /** Guarda la corrida. Si ya hay una igual (`isSameRun`), no la duplica y devuelve `null`. */
+  save: (r: RunToSave) => HistoryRun | null
   remove: (id: string) => void
   toggleStar: (id: string) => void
   setNote: (id: string, note: string) => void
 }
 
+export type RunToSave = Pick<HistoryRun, 'site' | 'startUtc' | 'durationDays' | 'stepMinutes'> & {
+  panelAreaM2: number; panelEfficiency: number; evaluation: Evaluation
+}
+
+/**
+ * ¿Es la misma corrida? Mismo lugar, inicio, duración, paso y paneles (tarea A7).
+ * Una corrida vieja sin paneles nunca se considera igual: podría ser de otros paneles.
+ */
+export function isSameRun(a: Omit<RunToSave, 'evaluation'>, b: HistoryRun): boolean {
+  return a.site.lat === b.site.lat && a.site.lon === b.site.lon && a.startUtc === b.startUtc
+    && a.durationDays === b.durationDays && a.stepMinutes === b.stepMinutes
+    && b.panelAreaM2 !== undefined && b.panelEfficiency !== undefined
+    && a.panelAreaM2 === b.panelAreaM2 && a.panelEfficiency === b.panelEfficiency
+}
+
 const newId = () => (globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`)
 
-export const useHistoryStore = create<HistoryState>()(persist((set) => ({
+export const useHistoryStore = create<HistoryState>()(persist((set, get) => ({
   runs: [],
-  save: ({ site, startUtc, durationDays, stepMinutes, evaluation }) => {
+  save: ({ evaluation, ...params }) => {
+    if (get().runs.some((r) => isSameRun(params, r))) return null
     const run: HistoryRun = {
-      id: newId(), savedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'), site, startUtc, durationDays, stepMinutes,
+      id: newId(), savedAt: new Date().toISOString().replace(/\.\d{3}Z$/, 'Z'), ...params,
       status: evaluation.site.status, summary: evaluation.summary, starred: false, note: '',
     }
     set((s) => ({ runs: [run, ...s.runs].slice(0, HISTORY_LIMIT) }))

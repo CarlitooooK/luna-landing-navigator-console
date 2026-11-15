@@ -42,7 +42,7 @@ Qué hace cada control: la acción del store que dispara, si pide algo a la red 
 | Time step | Detailed | 15, 60 o 120 min | No |
 | Solar panels | Simple: resumen que se abre; Detailed: siempre abierto | Área (m²) y eficiencia (%) | No |
 | **Run simulation** | Ambos | `evaluate()` ([`01`](01-arquitectura.md)) | Sí: `/evaluate`, `/terrain/patch`, `/psr/nearby` |
-| Marcador (bookmark) | Ambos | Guarda la corrida en History (`useHistoryStore.save`) | No |
+| Marcador (bookmark) | Ambos | Guarda la corrida en History (`useHistoryStore.save`), con sus paneles. Dice "Saved to history." o, si ya existe una igual (`isSameRun`), "Already in history." sin duplicarla. Deshabilitado si Results está desactualizado | No |
 | "Last run took…" | Ambos | Tiempo de las tres peticiones y número de pasos | — |
 
 Clic en un pin o en la superficie del globo equivale a elegir en Setup (`SITE_CLICKED` / `GLOBE_CLICKED`), salvo durante la escena de alunizaje.
@@ -92,7 +92,7 @@ Compare usa la duración y el panel de Setup, pero siempre `step_minutes = 120`.
 | Buscador y filtros (All, Starred, GO, NO-GO) | Filtra la lista local, agrupada por día UTC ("Today", "Yesterday", fecha) | No |
 | Estrella | Marca o desmarca | No |
 | Note | Texto libre guardado al escribir | No |
-| "Open in Simulate" | Carga sitio, fecha, duración y paso; pasa a Simulate y evalúa | Sí, `evaluate()` |
+| "Open in Simulate" | Carga sitio, fecha, duración, paso y, si la corrida los guardó, los paneles; pasa a Simulate y evalúa | Sí, `evaluate()` |
 | "Duplicate and edit" | Carga los parámetros y pasa a Simulate sin evaluar | No |
 | "Add to Compare" | Agrega el escenario y pasa a Compare | No |
 | "Delete run" | Borra la corrida | No |

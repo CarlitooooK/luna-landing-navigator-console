@@ -67,7 +67,7 @@ Cada tarea es un commit (Conventional Commits en español) y cita la sección de
 
 ### A7. `feat(history)`: guardar avisa y no duplica
 - **Spec:** 4.5. **Cierra:** A-10, H-01 (parcial).
-- **Cambios:** `isSameRun(a, b)` en `useHistoryStore`; el estado "Saved" en el botón; región `aria-live`.
+- **Cambios:** `isSameRun(a, b)` en `useHistoryStore`; el estado "Saved" en el botón; región `aria-live`; History guarda y restaura los paneles; no se guarda si Results está desactualizado.
 - **Aceptación:** dos clics seguidos dejan una sola corrida y el segundo dice "Already in history".
 - **Pruebas:** se amplía `useHistoryStore.test.ts` (igual, distinto en cada campo, y paneles no guardados en corridas viejas).
 

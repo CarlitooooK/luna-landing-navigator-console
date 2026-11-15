@@ -312,7 +312,7 @@ El paso 2 del tour depende de esto: sin la corrección, quien navega con teclado
 
 ### 4.5 Guardar en History (A-10)
 
-El bookmark pasa a ser un botón con texto en Detailed ("Save") y con `aria-label` "Save to history" en Simple. Al guardar, el ícono pasa a lleno durante 1.5 s y una región `aria-live` dice "Saved to history". Si ya existe una corrida con el mismo sitio, inicio, duración, paso y paneles, no se crea otra: se avisa "Already in history". La deduplicación es una función pura en `useHistoryStore` y lleva prueba.
+El bookmark sigue siendo un botón de ícono con `aria-label` "Save to history". Al guardar, el ícono pasa a `BookmarkCheck` y una línea `role="status"` dice "Saved to history." durante 2.5 s. Si ya existe una corrida con el mismo sitio, inicio, duración, paso y paneles (`isSameRun` de `useHistoryStore`), no se crea otra y la línea dice "Already in history.". Una corrida vieja sin paneles nunca se toma como igual. Si Results está desactualizado (§3.2), el botón se deshabilita con el nombre "Run the simulation again to save it": solo se guarda la corrida que está en pantalla. History guarda también los paneles, y "Open in Simulate" los restaura cuando la corrida los trae.
 
 ### 4.6 Texto fijo de una misión frente a los datos (M-02)
 

@@ -1,9 +1,10 @@
-import { useMemo, useState, type FocusEvent, type KeyboardEvent } from 'react'
-import { Bookmark, ChevronRight, MapPin, Play, Search, Zap } from 'lucide-react'
+import { useEffect, useMemo, useState, type FocusEvent, type KeyboardEvent } from 'react'
+import { Bookmark, BookmarkCheck, ChevronRight, MapPin, Play, Search, Zap } from 'lucide-react'
 import { STEP_OPTIONS, useMissionStore, type SelectedSite } from '@/core/store/useMissionStore'
 import { useHistoryStore } from '@/core/store/useHistoryStore'
 import { toUtcIso } from '@/core/utils/time'
 import { fmtCoord } from '@/core/utils/coordinates'
+import { isStale } from '@/core/utils/stale'
 import { Button, Divider, Field, IconButton, IconWell, Input, Panel, SectionTitle, Segmented } from '@/ui'
 import type { Site } from '@/types'
 import { isComboboxKey, moveActive, type ComboboxKey } from './combobox'
@@ -157,19 +158,31 @@ function SolarPanels({ detailed }: { detailed: boolean }) {
 }
 
 function RunBar({ detailed }: { detailed: boolean }) {
-  const { selected, loading, evaluate, lastRunMs, evaluation, startUtc, durationDays, stepMinutes } = useMissionStore()
+  const { selected, loading, evaluate, lastRunMs, evaluation, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency, evaluatedFor } = useMissionStore()
   const save = useHistoryStore((s) => s.save)
+  const [saved, setSaved] = useState<'saved' | 'duplicate' | null>(null)
+  useEffect(() => { if (!saved) return; const t = setTimeout(() => setSaved(null), 2500); return () => clearTimeout(t) }, [saved])
   const n = evaluation?.timeline.length
+  // Solo se guarda la corrida que está en pantalla con sus parámetros: si Results quedó desactualizado, primero hay que volver a correrla.
+  const stale = isStale({ lat: selected?.lat, lon: selected?.lon, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency }, evaluatedFor)
+  const canSave = !!evaluation && !!selected && !stale
+  const onSave = () => {
+    if (!canSave) return
+    const run = save({ site: selected, startUtc, durationDays, stepMinutes, panelAreaM2, panelEfficiency, evaluation })
+    setSaved(run ? 'saved' : 'duplicate')
+  }
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2">
         <Button variant="primary" icon={Play} iconFill className={loading ? 'flex-1 shimmer' : 'flex-1'} disabled={!selected || loading} onClick={() => void evaluate()}>
           {loading ? 'Calculating…' : 'Run simulation'}
         </Button>
-        <IconButton icon={Bookmark} label="Save to history" disabled={!evaluation || !selected}
-          className="raised size-11 text-ink disabled:opacity-40"
-          onClick={() => evaluation && selected && save({ site: selected, startUtc, durationDays, stepMinutes, evaluation })} />
+        <IconButton icon={saved === 'saved' ? BookmarkCheck : Bookmark} label={stale ? 'Run the simulation again to save it' : 'Save to history'} disabled={!canSave}
+          className="raised size-11 text-ink disabled:opacity-40" onClick={onSave} />
       </div>
+      <p role="status" aria-live="polite" className="min-h-0 text-xs text-ink-2 empty:hidden">
+        {saved === 'saved' ? 'Saved to history.' : saved === 'duplicate' ? 'Already in history.' : ''}
+      </p>
       {lastRunMs != null && n != null && (
         <p className={detailed ? 'tnum font-mono text-[11px] text-ink-3' : 'text-xs text-ink-3'}>
           {detailed ? `POST /evaluate · ${(lastRunMs / 1000).toFixed(2)} s · ${n} steps` : `Last run took ${lastRunMs < 100 ? 'under 0.1' : (lastRunMs / 1000).toFixed(1)} s · ${n} steps`}

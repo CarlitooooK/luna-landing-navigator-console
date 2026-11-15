@@ -80,7 +80,9 @@ export function RunDetails() {
   if (!r) return runs.length ? <Panel label="Run details" peekAside="Pick a run"><p className="text-[13px] text-ink-2">Pick a run to see its summary.</p></Panel> : null
   const load = () => {
     select(r.site)
-    setConfig({ startUtc: r.startUtc, durationDays: r.durationDays, stepMinutes: r.stepMinutes })
+    // Las corridas guardadas desde la tarea A7 traen sus paneles; las viejas conservan los de Setup.
+    setConfig({ startUtc: r.startUtc, durationDays: r.durationDays, stepMinutes: r.stepMinutes,
+      ...(r.panelAreaM2 !== undefined && r.panelEfficiency !== undefined ? { panelAreaM2: r.panelAreaM2, panelEfficiency: r.panelEfficiency } : {}) })
     withViewTransition(() => setWorkspace('simulate'))
   }
   const s = r.summary
